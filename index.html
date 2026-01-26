@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Trabajo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>Sesión Actual</h1>
+    <div id="display" class="timer">00:00:00</div>
+    
+    <div class="controls">
+        <button id="btnToggle" onclick="toggleTimer()">Iniciar</button>
+        <button id="btnReset" onclick="resetBank()" class="btn-reset">Resetear Banco</button>
+    </div>
+
+    <div class="stats">
+        <p>Banco de Minutos: <span id="bankDisplay" class="highlight">0</span> min</p>
+        <hr class="divider">
+        <p id="message">Esperando inicio...</p>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

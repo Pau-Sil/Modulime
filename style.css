@@ -1,0 +1,82 @@
+:root {
+    --bg: #1e1e2e;
+    --fg: #cdd6f4;
+    --accent: #89b4fa;
+    --danger: #f38ba8;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg);
+    color: var(--fg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+h1 {
+    margin-bottom: 0.5rem;
+    font-weight: 300;
+}
+
+.timer {
+    font-size: 4rem;
+    font-family: monospace;
+    font-weight: bold;
+    margin: 1rem 0;
+}
+
+button {
+    background: transparent;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    padding: 10px 30px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: all 0.2s;
+    margin: 5px;
+}
+
+button:hover {
+    background: var(--accent);
+    color: var(--bg);
+}
+
+button.stop {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+button.stop:hover {
+    background: var(--danger);
+    color: var(--bg);
+}
+
+.btn-reset {
+    font-size: 0.8rem;
+    border-color: #666;
+    color: #666;
+}
+
+.stats {
+    margin-top: 2rem;
+    text-align: center;
+    background: rgba(255,255,255,0.05);
+    padding: 1.5rem;
+    border-radius: 10px;
+    width: 300px;
+}
+
+.highlight {
+    color: var(--accent);
+    font-weight: bold;
+}
+
+.divider {
+    border-color: #444;
+    opacity: 0.5;
+}
