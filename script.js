@@ -52,8 +52,8 @@ function processSession(minutesWorked) {
     updateBankDisplay();
     
     const msg = `Sesión: ${minutesWorked.toFixed(1)} min.\n` +
-                `>> REGISTRAR HOY: ${hoursToLog} HORAS.\n` +
-                `>> TE DEBEN: ${minuteBank.toFixed(1)} min.`;
+                `>> REGISTRAR: ${hoursToLog} HORAS.\n` +
+                `>> SALDO: ${minuteBank.toFixed(1)} min.`;
     
     document.getElementById('message').innerText = msg;
     alert(msg);
@@ -70,4 +70,53 @@ function resetBank() {
         updateBankDisplay();
         document.getElementById('message').textContent = "Banco reseteado.";
     }
+}
+
+function exportData() {
+    const data = {
+        app: "modulo-time",
+        timestamp: new Date().toISOString(),
+        bank: minuteBank
+    };
+    
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `modulo_backup_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function triggerImport() {
+    document.getElementById('importFile').click();
+}
+
+function importData(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (typeof data.bank === 'number') {
+                minuteBank = data.bank;
+                localStorage.setItem('workMinuteBank', minuteBank);
+                updateBankDisplay();
+                document.getElementById('message').textContent = "Backup restaurado correctamente.";
+                alert(`Restaurado. Saldo actual: ${minuteBank.toFixed(1)} min`);
+            } else {
+                alert("Error: El archivo JSON no tiene el formato correcto.");
+            }
+        } catch (err) {
+            alert("Error al leer el archivo JSON.");
+        }
+    };
+    reader.readAsText(file);
+    input.value = ''; 
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitor de Trabajo</title>
+    <title>Modulo</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,13 +13,19 @@
     
     <div class="controls">
         <button id="btnToggle" onclick="toggleTimer()">Iniciar</button>
-        <button id="btnReset" onclick="resetBank()" class="btn-reset">Resetear Banco</button>
+        <button id="btnReset" onclick="resetBank()" class="btn-danger">Resetear Banco</button>
     </div>
 
     <div class="stats">
-        <p>Banco de Minutos: <span id="bankDisplay" class="highlight">0</span> min</p>
+        <p>Banco: <span id="bankDisplay" class="highlight">0</span> min</p>
         <hr class="divider">
-        <p id="message">Esperando inicio...</p>
+        <p id="message">Listo.</p>
+    </div>
+
+    <div class="data-controls">
+        <button onclick="exportData()" class="btn-small">Exportar JSON</button>
+        <button onclick="triggerImport()" class="btn-small">Importar JSON</button>
+        <input type="file" id="importFile" accept=".json" onchange="importData(this)">
     </div>
 
     <script src="script.js"></script>

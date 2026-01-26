@@ -3,6 +3,7 @@
     --fg: #cdd6f4;
     --accent: #89b4fa;
     --danger: #f38ba8;
+    --muted: #6c7086;
 }
 
 body {
@@ -56,10 +57,17 @@ button.stop:hover {
     color: var(--bg);
 }
 
-.btn-reset {
+.btn-danger {
     font-size: 0.8rem;
-    border-color: #666;
-    color: #666;
+    border-color: var(--danger);
+    color: var(--danger);
+    opacity: 0.7;
+}
+
+.btn-danger:hover {
+    background: var(--danger);
+    color: var(--bg);
+    opacity: 1;
 }
 
 .stats {
@@ -79,4 +87,27 @@ button.stop:hover {
 .divider {
     border-color: #444;
     opacity: 0.5;
+}
+
+.data-controls {
+    margin-top: 3rem;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-small {
+    font-size: 0.8rem;
+    padding: 5px 15px;
+    border-color: var(--muted);
+    color: var(--muted);
+}
+
+.btn-small:hover {
+    border-color: var(--fg);
+    color: var(--fg);
+    background: transparent;
+}
+
+#importFile {
+    display: none;
 }
