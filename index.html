@@ -3,23 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modulime</title>
+    <title>Modulo</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <h1>Sesión Actual</h1>
     <div id="display" class="timer">00:00:00</div>
+    <div id="statusBadge" class="badge">Listo</div>
     
     <div class="controls">
-        <button id="btnToggle" onclick="toggleTimer()">Iniciar</button>
-        <button id="btnReset" onclick="resetBank()" class="btn-danger">Resetear Banco</button>
+        <button id="btnMain" onclick="handleMainAction()">Iniciar</button>
+        
+        <button id="btnFinish" onclick="finishSession()" class="btn-secondary hidden">Terminar y Guardar</button>
+        
+        <button id="btnDiscard" onclick="discardSession()" class="btn-danger hidden" title="Descartar sesión actual sin guardar">x</button>
     </div>
 
     <div class="stats">
         <p>Banco: <span id="bankDisplay" class="highlight">0</span> min</p>
         <hr class="divider">
-        <p id="message">Listo.</p>
+        <p id="message">Esperando inicio...</p>
+    </div>
+    
+    <div class="controls-footer">
+        <button onclick="resetBank()" class="btn-text">Resetear Banco</button>
     </div>
 
     <div class="data-controls">

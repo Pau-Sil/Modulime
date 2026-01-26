@@ -2,8 +2,10 @@
     --bg: #1e1e2e;
     --fg: #cdd6f4;
     --accent: #89b4fa;
+    --warn: #f9e2af;
     --danger: #f38ba8;
     --muted: #6c7086;
+    --success: #a6e3a1;
 }
 
 body {
@@ -18,60 +20,69 @@ body {
     margin: 0;
 }
 
-h1 {
-    margin-bottom: 0.5rem;
-    font-weight: 300;
-}
+h1 { margin-bottom: 0.5rem; font-weight: 300; }
 
 .timer {
     font-size: 4rem;
     font-family: monospace;
     font-weight: bold;
-    margin: 1rem 0;
+    margin: 0.5rem 0;
+}
+
+.badge {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+}
+
+/* Controls Layout */
+.controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 1rem;
 }
 
 button {
     background: transparent;
     border: 2px solid var(--accent);
     color: var(--accent);
-    padding: 10px 30px;
-    font-size: 1.2rem;
+    padding: 10px 25px;
+    font-size: 1.1rem;
     cursor: pointer;
     border-radius: 5px;
     transition: all 0.2s;
-    margin: 5px;
 }
 
-button:hover {
-    background: var(--accent);
-    color: var(--bg);
-}
+button:hover { background: var(--accent); color: var(--bg); }
 
-button.stop {
-    border-color: var(--danger);
-    color: var(--danger);
-}
+/* Estados de Botones */
+.btn-secondary { border-color: var(--success); color: var(--success); }
+.btn-secondary:hover { background: var(--success); color: var(--bg); }
 
-button.stop:hover {
-    background: var(--danger);
-    color: var(--bg);
-}
+.btn-danger { border-color: var(--danger); color: var(--danger); padding: 10px 15px; }
+.btn-danger:hover { background: var(--danger); color: var(--bg); }
 
-.btn-danger {
+.btn-text { border: none; color: var(--muted); font-size: 0.9rem; }
+.btn-text:hover { color: var(--danger); background: transparent; }
+
+.btn-small {
     font-size: 0.8rem;
-    border-color: var(--danger);
-    color: var(--danger);
-    opacity: 0.7;
+    padding: 5px 15px;
+    border: 1px solid var(--muted);
+    color: var(--muted);
 }
+.btn-small:hover { border-color: var(--fg); color: var(--fg); background: transparent; }
 
-.btn-danger:hover {
-    background: var(--danger);
-    color: var(--bg);
-    opacity: 1;
-}
+/* Utilidades */
+.hidden { display: none !important; }
+.highlight { color: var(--accent); font-weight: bold; }
+.divider { border-color: #444; opacity: 0.5; }
 
 .stats {
-    margin-top: 2rem;
+    margin-top: 1rem;
     text-align: center;
     background: rgba(255,255,255,0.05);
     padding: 1.5rem;
@@ -79,35 +90,5 @@ button.stop:hover {
     width: 300px;
 }
 
-.highlight {
-    color: var(--accent);
-    font-weight: bold;
-}
-
-.divider {
-    border-color: #444;
-    opacity: 0.5;
-}
-
-.data-controls {
-    margin-top: 3rem;
-    display: flex;
-    gap: 10px;
-}
-
-.btn-small {
-    font-size: 0.8rem;
-    padding: 5px 15px;
-    border-color: var(--muted);
-    color: var(--muted);
-}
-
-.btn-small:hover {
-    border-color: var(--fg);
-    color: var(--fg);
-    background: transparent;
-}
-
-#importFile {
-    display: none;
-}
+.data-controls { margin-top: 3rem; display: flex; gap: 10px; }
+#importFile { display: none; }
