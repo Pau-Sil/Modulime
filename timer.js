@@ -1,5 +1,5 @@
 let timerInterval;
-let minuteBank = parseFloat(localStorage.getItem('workMinuteBank')) || 0;
+let minuteBank = parseFloat((parseFloat(localStorage.getItem('workMinuteBank')) || 0).toFixed(2));
 let sessionHistory = JSON.parse(localStorage.getItem('sessionHistory')) || [];
 
 let currentSession = JSON.parse(localStorage.getItem('currentSession')) || {
@@ -60,22 +60,41 @@ function openFinishModal() {
         totalMs += (Date.now() - currentSession.startTime);
     }
     
-    const currentSessionMinutes = totalMs / 1000 / 60;
-    const potentialTotalBank = minuteBank + currentSessionMinutes;
-    const potentialHoursToLog = Math.floor(potentialTotalBank / 60);
+    const currentSessionMinutes = parseFloat((totalMs / 1000 / 60).toFixed(2));
+    
+    const potentialTotalBank = parseFloat((minuteBank + currentSessionMinutes).toFixed(2));
+    
+    const potentialHoursToLog = Math.floor(potentialTotalBank / 60);       
+    const potentialRemaining = parseFloat((potentialTotalBank - (potentialHoursToLog * 60)).toFixed(2));
 
     const infoHTML = `
-        <span style="display:block; font-size: 1.5rem; color: var(--fg); margin-bottom: 5px;">
-            ${msToHMS(totalMs)} <span style="font-size:0.8rem; color:var(--muted)">(Sesión)</span>
-        </span>
-        <span style="display:block; font-size: 0.9rem; color: var(--accent); border-top: 1px solid #444; padding-top: 5px;">
-            + Banco: ${minuteBank.toFixed(1)} min
-            <br>
-            = Total Acumulado: ${potentialTotalBank.toFixed(1)} min
-        </span>
-        <span style="display:block; font-size: 1.1rem; color: var(--success); font-weight: bold; margin-top: 10px;">
-            >> SE REGISTRARÁN: ${potentialHoursToLog} HORAS
-        </span>
+        <div style="margin-bottom: 15px;">
+            <span style="display:block; font-size: 2rem; font-weight: bold; color: var(--fg); letter-spacing: -1px;">
+                ${msToHMS(totalMs)}
+            </span>
+            <span style="font-size:0.8rem; color:var(--muted); text-transform: uppercase; letter-spacing: 1px;">Tiempo de Sesión</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; border-top: 1px solid #444; padding-top: 15px; margin-top: 10px;">
+            
+            <div style="text-align: center; background: rgba(166, 227, 161, 0.1); padding: 10px; border-radius: 6px; border: 1px solid var(--success);">
+                <span style="display:block; font-size: 0.75rem; color: var(--success); text-transform: uppercase;">A Registrar</span>
+                <span style="display:block; font-size: 1.8rem; font-weight: bold; color: var(--success);">
+                    ${potentialHoursToLog} <span style="font-size: 1rem;">hs</span>
+                </span>
+            </div>
+
+            <div style="text-align: center; background: rgba(137, 180, 250, 0.1); padding: 10px; border-radius: 6px; border: 1px solid var(--accent);">
+                <span style="display:block; font-size: 0.75rem; color: var(--accent); text-transform: uppercase;">Nuevo Banco</span>
+                <span style="display:block; font-size: 1.8rem; font-weight: bold; color: var(--accent);">
+                    ${potentialRemaining.toFixed(1)} <span style="font-size: 1rem;">min</span>
+                </span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 10px; font-size: 0.8rem; color: var(--muted);">
+            (Banco actual: ${minuteBank.toFixed(1)} + Sesión: ${currentSessionMinutes.toFixed(1)})
+        </div>
     `;
     
     document.getElementById('modalTime').innerHTML = infoHTML;
@@ -110,12 +129,17 @@ function confirmFinish() {
     if (currentSession.status === 'RUNNING') {
         totalMs += (Date.now() - currentSession.startTime);
     }
-    const minutesWorked = totalMs / 1000 / 60;
     
-    minuteBank += minutesWorked;
-    const hoursToLog = Math.floor(minuteBank / 60);
+    const minutesWorked = parseFloat((totalMs / 1000 / 60).toFixed(2));
+    
+    let newTotal = parseFloat((minuteBank + minutesWorked).toFixed(2));
+    
+    const hoursToLog = Math.floor(newTotal / 60);
+    
     if (hoursToLog > 0) {
-        minuteBank -= (hoursToLog * 60);
+        minuteBank = parseFloat((newTotal - (hoursToLog * 60)).toFixed(2));
+    } else {
+        minuteBank = newTotal;
     }
     
     const today = new Date().toLocaleDateString();
@@ -250,7 +274,7 @@ function updateBankDisplay() {
 }
 
 function exportData() {
-    const data = { app: "modulime", version: 2, bank: minuteBank, history: sessionHistory, webhook: webhookURL };
+    const data = { app: "modulime", version: 3.1, bank: minuteBank, history: sessionHistory, webhook: webhookURL };
     const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
