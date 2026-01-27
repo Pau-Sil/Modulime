@@ -3,39 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modulo</title>
+    <title>Modulime</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <h1>Sesión Actual</h1>
+    <h1>Modulime</h1>
+    
     <div id="display" class="timer">00:00:00</div>
     <div id="statusBadge" class="badge">Listo</div>
     
     <div class="controls">
         <button id="btnMain" onclick="handleMainAction()">Iniciar</button>
-        
-        <button id="btnFinish" onclick="finishSession()" class="btn-secondary hidden">Terminar y Guardar</button>
-        
-        <button id="btnDiscard" onclick="discardSession()" class="btn-danger hidden" title="Descartar sesión actual sin guardar">x</button>
+        <button id="btnFinish" onclick="openFinishModal()" class="btn-secondary hidden">Terminar</button>
+        <button id="btnDiscard" onclick="discardSession()" class="btn-danger hidden" title="Descartar sesión">x</button>
     </div>
 
     <div class="stats">
         <p>Banco: <span id="bankDisplay" class="highlight">0</span> min</p>
         <hr class="divider">
-        <p id="message">Esperando inicio...</p>
+        <p id="message">Esperando...</p>
     </div>
     
-    <div class="controls-footer">
-        <button onclick="resetBank()" class="btn-text">Resetear Banco</button>
+<div class="history-container">
+    <h3>Historial Local</h3>
+    <table id="historyTable">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Total</th> <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+    <div id="finishModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Finalizar Sesión</h2>
+            <p>Tiempo de esta sesión: <span id="modalTime" class="highlight">00:00:00</span></p>
+            
+            <label id="descLabel" for="sessionDesc">¿Qué hiciste hoy?</label>
+            <textarea id="sessionDesc" rows="4" placeholder="Ej: Fix bug en navbar..."></textarea>
+            
+            <div class="modal-actions">
+                <button onclick="confirmFinish()" class="btn-secondary">Guardar y Sincronizar</button>
+                <button onclick="closeFinishModal()" class="btn-text">Cancelar</button>
+            </div>
+        </div>
     </div>
 
-    <div class="data-controls">
-        <button onclick="exportData()" class="btn-small">Exportar JSON</button>
-        <button onclick="triggerImport()" class="btn-small">Importar JSON</button>
-        <input type="file" id="importFile" accept=".json" onchange="importData(this)">
-    </div>
+<div class="data-controls">
+    <button onclick="setupWebhook()" class="btn-small">Config Sheet URL</button>
+    <button onclick="exportData()" class="btn-small">Backup JSON</button>
+    <button onclick="triggerImport()" class="btn-small">Restaurar JSON</button>
+    
+    <button onclick="hardReset()" class="btn-small" style="border-color: var(--danger); color: var(--danger);">Borrar Datos</button>
+    
+    <input type="file" id="importFile" accept=".json" onchange="importData(this)">
+</div>
 
-    <script src="script.js"></script>
+    <script src="sheets.js"></script>
+    <script src="timer.js"></script>
 </body>
 </html>
