@@ -57,7 +57,7 @@ function updateTimerDisplay() {
     document.getElementById('display').textContent = msToHMS(totalMs);
 }
 
-// --- MODAL Y CÁLCULOS (Aquí está el cambio visual) ---
+// --- MODAL Y CÁLCULOS ---
 
 function openFinishModal() {
     // 1. Congelar cálculo actual
@@ -74,7 +74,6 @@ function openFinishModal() {
     const potentialRemaining = potentialTotalBank - (potentialHoursToLog * 60);
 
     // 3. Mostrar la "Realidad Contable" en el Modal
-    // Usamos HTML dentro del span para mostrar detalles
     const infoHTML = `
         <span style="display:block; font-size: 1.5rem; color: var(--fg); margin-bottom: 5px;">
             ${msToHMS(totalMs)} <span style="font-size:0.8rem; color:var(--muted)">(Sesión)</span>
@@ -91,7 +90,7 @@ function openFinishModal() {
     
     document.getElementById('modalTime').innerHTML = infoHTML;
     
-    // 4. Lógica de descripción (Igual que antes)
+    // 4. Lógica de descripción
     const today = new Date().toLocaleDateString();
     const existingLogIndex = sessionHistory.findIndex(log => new Date(log.date).toLocaleDateString() === today);
     const textarea = document.getElementById('sessionDesc');
@@ -138,7 +137,7 @@ function confirmFinish() {
 
     if (existingLogIndex !== -1) {
         sessionHistory[existingLogIndex].duration += minutesWorked;
-        sessionHistory[existingLogIndex].hoursBilled += hoursToLog; // Se suma lo nuevo a lo viejo
+        sessionHistory[existingLogIndex].hoursBilled += hoursToLog; 
         sessionHistory[existingLogIndex].desc = description; 
         
         const updatedLog = sessionHistory.splice(existingLogIndex, 1)[0];
@@ -162,7 +161,6 @@ function confirmFinish() {
     updateBankDisplay();
     renderHistory();
     
-    // Feedback visual en la interfaz principal
     const feedbackMsg = hoursToLog > 0 
         ? `¡Registrado! ${hoursToLog} hrs enviadas.` 
         : `Guardado en banco. Saldo: ${minuteBank.toFixed(0)} min`;
@@ -178,6 +176,7 @@ function confirmFinish() {
 }
 
 // --- UTILS ---
+
 function discardSession() {
     if(confirm("¿Descartar sesión?")) {
         clearInterval(timerInterval);
@@ -235,8 +234,6 @@ function updateUI() {
     }
 }
 
-// Busca y reemplaza la función renderHistory completa
-
 function renderHistory() {
     const tbody = document.querySelector('#historyTable tbody');
     tbody.innerHTML = '';
@@ -248,15 +245,10 @@ function renderHistory() {
         let displayTime;
         let styleClass = '';
 
-        // LÓGICA DE VISUALIZACIÓN INTELIGENTE
         if (log.hoursBilled > 0) {
-            // Caso A: Se completaron horas (Ej: 3 hs)
-            // Se muestra EN VERDE porque es un "logro" / cobro
             displayTime = `${log.hoursBilled} hs`;
             styleClass = 'color: var(--success); font-weight: bold; font-size: 1.1em;';
         } else {
-            // Caso B: Solo se acumularon minutos (Ej: 45.2 m)
-            // Se muestra normal/gris
             displayTime = `${log.duration.toFixed(1)} m`;
             styleClass = 'color: var(--muted);';
         }
@@ -269,11 +261,12 @@ function renderHistory() {
         tbody.appendChild(row);
     });
 }
+
 function updateBankDisplay() {
     document.getElementById('bankDisplay').textContent = minuteBank.toFixed(1);
 }
 
-// Backup (Sin cambios)
+// Backup 
 function exportData() {
     const data = { app: "modulime", version: 2, bank: minuteBank, history: sessionHistory, webhook: webhookURL };
     const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
@@ -284,6 +277,7 @@ function exportData() {
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 function triggerImport() { document.getElementById('importFile').click(); }
+
 function importData(input) {
     const file = input.files[0];
     if (!file) return;
@@ -307,26 +301,24 @@ function importData(input) {
 }
 
 function hardReset() {
-    // 1. Doble confirmación para evitar accidentes
-    const confirm1 = confirm("⚠️ ¿ESTÁS SEGURO?\n\nEsto borrará todo el historial local y el banco de minutos.\nLa configuración de Google Sheets NO se borrará.");
-    if (!confirm1) return;
+    // 1. Confirmación
+    const confirm = confirm("⚠️ ¿ESTÁS SEGURO?\n\nEsto borrará todo el historial local y el banco de minutos.\nLa configuración de Google Sheets NO se borrará.");
+    if (!confirm) return;
 
-    // 2. Resetear variables en memoria
+    // 3. Resetear variables en memoria
     minuteBank = 0;
     sessionHistory = [];
     currentSession = { status: 'IDLE', startTime: null, accumulated: 0 };
     
-    // 3. Resetear LocalStorage (Manual para no borrar la URL)
+    // 4. Resetear LocalStorage (Manual para no borrar la URL)
     localStorage.setItem('workMinuteBank', 0);
     localStorage.setItem('sessionHistory', JSON.stringify([]));
     localStorage.setItem('currentSession', JSON.stringify(currentSession));
     
-    // NOTA: NO tocamos 'googleWebhookURL' para que no pierdas la conexión.
-
-    // 4. Detener reloj si estaba corriendo
+    // 5. Detener reloj si estaba corriendo
     if (timerInterval) clearInterval(timerInterval);
     
-    // 5. Actualizar UI
+    // 6. Actualizar UI
     document.getElementById('display').textContent = "00:00:00";
     document.getElementById('message').textContent = "Sistema reiniciado.";
     updateUI();
