@@ -301,9 +301,13 @@ function importData(input) {
 }
 
 function hardReset() {
-    // 1. Confirmación
-    const confirm = confirm("⚠️ ¿ESTÁS SEGURO?\n\nEsto borrará todo el historial local y el banco de minutos.\nLa configuración de Google Sheets NO se borrará.");
-    if (!confirm) return;
+    // 1. Confirmación inicial
+    const confirm1 = confirm("⚠️ ¿ESTÁS SEGURO?\n\nEsto borrará todo el historial local y el banco de minutos.\nLa configuración de Google Sheets NO se borrará.");
+    if (!confirm1) return;
+
+    // 2. Segunda confirmación de seguridad
+    const confirm2 = confirm("¿De verdad? Esta acción no se puede deshacer (a menos que tengas un backup json).");
+    if (!confirm2) return;
 
     // 3. Resetear variables en memoria
     minuteBank = 0;
