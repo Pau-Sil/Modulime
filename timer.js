@@ -1,16 +1,13 @@
-// --- ESTADO GLOBAL ---
 let timerInterval;
 let minuteBank = parseFloat(localStorage.getItem('workMinuteBank')) || 0;
 let sessionHistory = JSON.parse(localStorage.getItem('sessionHistory')) || [];
 
-// Sesión actual
 let currentSession = JSON.parse(localStorage.getItem('currentSession')) || {
     status: 'IDLE',   
     startTime: null,
     accumulated: 0
 };
 
-// --- INICIALIZACIÓN ---
 if (currentSession.status !== 'IDLE') {
     updateUI();
     if (currentSession.status === 'RUNNING') startTicker();
@@ -18,7 +15,6 @@ if (currentSession.status !== 'IDLE') {
 updateBankDisplay();
 renderHistory();
 
-// --- LÓGICA DEL TIMER ---
 function handleMainAction() {
     const now = Date.now();
     
@@ -57,23 +53,17 @@ function updateTimerDisplay() {
     document.getElementById('display').textContent = msToHMS(totalMs);
 }
 
-// --- MODAL Y CÁLCULOS ---
-
 function openFinishModal() {
-    // 1. Congelar cálculo actual
     clearInterval(timerInterval);
     let totalMs = currentSession.accumulated;
     if (currentSession.status === 'RUNNING') {
         totalMs += (Date.now() - currentSession.startTime);
     }
     
-    // 2. Predecir el futuro (Simulación del Banco)
     const currentSessionMinutes = totalMs / 1000 / 60;
     const potentialTotalBank = minuteBank + currentSessionMinutes;
     const potentialHoursToLog = Math.floor(potentialTotalBank / 60);
-    const potentialRemaining = potentialTotalBank - (potentialHoursToLog * 60);
 
-    // 3. Mostrar la "Realidad Contable" en el Modal
     const infoHTML = `
         <span style="display:block; font-size: 1.5rem; color: var(--fg); margin-bottom: 5px;">
             ${msToHMS(totalMs)} <span style="font-size:0.8rem; color:var(--muted)">(Sesión)</span>
@@ -90,7 +80,6 @@ function openFinishModal() {
     
     document.getElementById('modalTime').innerHTML = infoHTML;
     
-    // 4. Lógica de descripción
     const today = new Date().toLocaleDateString();
     const existingLogIndex = sessionHistory.findIndex(log => new Date(log.date).toLocaleDateString() === today);
     const textarea = document.getElementById('sessionDesc');
@@ -117,21 +106,18 @@ function closeFinishModal() {
 function confirmFinish() {
     const description = document.getElementById('sessionDesc').value.trim() || "Sin descripción";
     
-    // Cálculo Final Real
     let totalMs = currentSession.accumulated;
     if (currentSession.status === 'RUNNING') {
         totalMs += (Date.now() - currentSession.startTime);
     }
     const minutesWorked = totalMs / 1000 / 60;
     
-    // Procesar Banco
     minuteBank += minutesWorked;
     const hoursToLog = Math.floor(minuteBank / 60);
     if (hoursToLog > 0) {
         minuteBank -= (hoursToLog * 60);
     }
     
-    // Historial Local
     const today = new Date().toLocaleDateString();
     const existingLogIndex = sessionHistory.findIndex(log => new Date(log.date).toLocaleDateString() === today);
 
@@ -167,15 +153,12 @@ function confirmFinish() {
         
     document.getElementById('message').textContent = feedbackMsg;
 
-    // Sincronización
     if (webhookURL && (hoursToLog > 0 || existingLogIndex !== -1)) {
         sendToSheet(hoursToLog, description);
     } else if (hoursToLog > 0 && !webhookURL) {
         alert(`IMPORTANTE: No tienes Sheet configurada.\nAnota manualmente: ${hoursToLog} HORAS.`);
     }
 }
-
-// --- UTILS ---
 
 function discardSession() {
     if(confirm("¿Descartar sesión?")) {
@@ -266,7 +249,6 @@ function updateBankDisplay() {
     document.getElementById('bankDisplay').textContent = minuteBank.toFixed(1);
 }
 
-// Backup 
 function exportData() {
     const data = { app: "modulime", version: 2, bank: minuteBank, history: sessionHistory, webhook: webhookURL };
     const blob = new Blob([JSON.stringify(data)], {type: "application/json"});
@@ -276,6 +258,7 @@ function exportData() {
     a.download = `modulime_bkp_${new Date().toISOString().slice(0,10)}.json`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
+
 function triggerImport() { document.getElementById('importFile').click(); }
 
 function importData(input) {
@@ -301,28 +284,22 @@ function importData(input) {
 }
 
 function hardReset() {
-    // 1. Confirmación inicial
     const confirm1 = confirm("⚠️ ¿ESTÁS SEGURO?\n\nEsto borrará todo el historial local y el banco de minutos.\nLa configuración de Google Sheets NO se borrará.");
     if (!confirm1) return;
 
-    // 2. Segunda confirmación de seguridad
     const confirm2 = confirm("¿De verdad? Esta acción no se puede deshacer (a menos que tengas un backup json).");
     if (!confirm2) return;
 
-    // 3. Resetear variables en memoria
     minuteBank = 0;
     sessionHistory = [];
     currentSession = { status: 'IDLE', startTime: null, accumulated: 0 };
     
-    // 4. Resetear LocalStorage (Manual para no borrar la URL)
     localStorage.setItem('workMinuteBank', 0);
     localStorage.setItem('sessionHistory', JSON.stringify([]));
     localStorage.setItem('currentSession', JSON.stringify(currentSession));
     
-    // 5. Detener reloj si estaba corriendo
     if (timerInterval) clearInterval(timerInterval);
     
-    // 6. Actualizar UI
     document.getElementById('display').textContent = "00:00:00";
     document.getElementById('message').textContent = "Sistema reiniciado.";
     updateUI();

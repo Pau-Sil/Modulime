@@ -10,7 +10,6 @@
 }
 
 body {
-    /* STACK DE FUENTES TECH: JetBrains, Fira (Fedora), Consolas (Win), Monospace (Fallback) */
     font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     background-color: var(--bg);
     color: var(--fg);
@@ -23,22 +22,20 @@ body {
 }
 
 h1, h2, h3 { 
-    font-weight: 700; /* Un poco más grueso para destacar en mono */
+    font-weight: 700;
     margin: 0.5rem 0; 
     letter-spacing: -1px;
 }
 
-/* --- ELEMENTOS DE FORMULARIO (Importante para que hereden la fuente mono) --- */
 button, input, textarea {
     font-family: inherit;
 }
 
-/* --- TIMER --- */
 .timer {
     font-size: 5rem;
     font-weight: bold;
     margin: 0.5rem 0;
-    letter-spacing: -3px; /* Ajustado para fuentes mono */
+    letter-spacing: -3px;
 }
 
 .badge {
@@ -49,7 +46,6 @@ button, input, textarea {
     margin-bottom: 2rem;
 }
 
-/* --- CONTROLES Y BOTONES --- */
 .controls { 
     display: flex; 
     gap: 15px; 
@@ -64,7 +60,7 @@ button {
     padding: 10px 30px;
     font-size: 1rem;
     cursor: pointer;
-    border-radius: 4px; /* Bordes más cuadrados van mejor con mono */
+    border-radius: 4px;
     transition: all 0.2s;
     font-weight: 600;
 }
@@ -78,6 +74,7 @@ button:hover {
     border-color: var(--success); 
     color: var(--success); 
 }
+
 .btn-secondary:hover { 
     background: var(--success); 
     color: var(--bg); 
@@ -88,6 +85,7 @@ button:hover {
     color: var(--danger); 
     padding: 10px 15px; 
 }
+
 .btn-danger:hover { 
     background: var(--danger); 
     color: var(--bg); 
@@ -98,6 +96,7 @@ button:hover {
     color: var(--muted); 
     font-size: 0.9rem; 
 }
+
 .btn-text:hover { 
     color: var(--danger); 
     background: transparent; 
@@ -109,13 +108,13 @@ button:hover {
     border: 1px solid #444; 
     color: var(--muted); 
 }
+
 .btn-small:hover { 
     border-color: var(--fg); 
     color: var(--fg); 
     background: transparent; 
 }
 
-/* --- UTILIDADES --- */
 .hidden { display: none !important; }
 .highlight { color: var(--accent); font-weight: bold; }
 .divider { border-color: #444; opacity: 0.3; width: 50%; }
@@ -126,10 +125,9 @@ button:hover {
     background: rgba(255,255,255,0.03);
     padding: 1rem 2rem;
     border-radius: 8px;
-    border: 1px solid rgba(255,255,255,0.05); /* Borde sutil estilo tech */
+    border: 1px solid rgba(255,255,255,0.05);
 }
 
-/* --- TABLA HISTORIAL (Layout Fijo) --- */
 .history-container { 
     margin-top: 3rem; 
     width: 90%; 
@@ -161,23 +159,18 @@ td {
     vertical-align: top; 
 }
 
-/* Columna 1: Fecha (20%) */
 th:nth-child(1), td:nth-child(1) { width: 20%; }
 
-/* Columna 2: Total (20%) - Aquí irán las "3 hs" o "141 m" */
 th:nth-child(2), td:nth-child(2) { 
     width: 20%; 
-    /* La fuente ya es mono globalmente, así que se verá bien alineado */
 }
 
-/* Columna 3: Descripción (60%) - Más espacio para leer */
 th:nth-child(3), td:nth-child(3) { 
     width: 60%; 
     word-wrap: break-word; 
     line-height: 1.4;
 }
 
-/* --- DATA CONTROLS (Footer) --- */
 .data-controls { 
     margin-top: 4rem; 
     display: flex; 
@@ -193,42 +186,33 @@ th:nth-child(3), td:nth-child(3) {
     display: none; 
 }
 
-/* --- MODAL (Ventana Flotante / Overlay) --- */
 .modal {
-    position: fixed; /* CLAVE: Lo saca del flujo y lo pone encima de la pantalla */
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    
-    /* Fondo del color del tema, casi sólido para tapar lo de atrás */
     background-color: rgba(30, 30, 46, 0.98); 
-    
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999; /* Asegura que esté por encima de todo */
-    
-    /* Un pequeño efecto borroso por si algo se trasluce */
+    z-index: 9999;
     backdrop-filter: blur(5px);
 }
 
 .modal-content {
-    background-color: #252635; /* Un gris un poco más claro que el fondo para resaltar */
+    background-color: #252635;
     padding: 2.5rem;
     border-radius: 8px;
     width: 90%;
     max-width: 500px;
-    
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5); /* Sombra para dar profundidad */
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     border: 1px solid #444;
 }
 
-/* Títulos dentro del modal */
 .modal-content h2 {
     margin-top: 0;
     font-size: 1.8rem;
@@ -242,7 +226,6 @@ th:nth-child(3), td:nth-child(3) {
     color: var(--muted);
 }
 
-/* Área de texto */
 textarea {
     background: rgba(0,0,0,0.3);
     border: 1px solid #555;
@@ -263,7 +246,6 @@ textarea:focus {
     background: rgba(0,0,0,0.5);
 }
 
-/* Botones del modal */
 .modal-actions {
     display: flex;
     justify-content: center;
@@ -272,5 +254,5 @@ textarea:focus {
 }
 
 .modal-actions button {
-    flex: 1; /* Hace que los botones ocupen el mismo ancho */
+    flex: 1;
 }
