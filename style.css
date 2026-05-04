@@ -1,13 +1,13 @@
 :root {
-    --bg: #1e1e2e;
-    --bg-surface: #313244;
-    --fg: #cdd6f4;
-    --accent: #89b4fa;
-    --warn: #f9e2af;
-    --danger: #f38ba8;
-    --muted: #6c7086;
-    --success: #a6e3a1;
-    --border: rgba(255, 255, 255, 0.08);
+    --bg: #282828;
+    --bg-surface: #2e2826;
+    --fg: #ebdbb2;
+    --accent: #dcb054;
+    --warn: #d97335;
+    --danger: #cf4d44;
+    --muted: #a89984;
+    --success: #a7a63f;
+    --border: rgba(235, 219, 178, 0.1);
 }
 
 *, *::before, *::after {
@@ -17,7 +17,7 @@
 }
 
 body {
-    font-family: 'Roboto Mono', monospace;
+    font-family: 'Roboto Mono', 'Fira Code', monospace;
     background-color: var(--bg);
     color: var(--fg);
     display: flex;
@@ -108,7 +108,7 @@ body {
 /* Estructura Anidada Principal */
 .app {
     width: 100%;
-    max-width: 750px;
+    max-width: 850px;
     display: flex;
     flex-direction: column;
     gap: 2rem;
@@ -220,20 +220,25 @@ body {
             & td {
                 padding: 12px 10px;
                 border-bottom: 1px solid var(--border);
-                color: #a6adc8;
+                color: var(--fg);
                 vertical-align: top;
                 line-height: 1.5;
             }
 
-            & th:nth-child(1), & td:nth-child(1) { width: 20%; }
+            & th:nth-child(1), & td:nth-child(1) { width: 15%; }
             & th:nth-child(2), & td:nth-child(2) {
-                width: 15%;
+                width: 12%;
                 color: var(--success);
                 font-weight: bold;
             }
             & th:nth-child(3), & td:nth-child(3) {
-                width: 65%;
+                width: 53%;
                 word-wrap: break-word;
+            }
+            & th:nth-child(4), & td:nth-child(4) {
+                width: 20%;
+                word-wrap: break-word;
+                color: var(--accent);
             }
         }
     }
@@ -315,27 +320,42 @@ body {
         & .modal-desc-container {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
+            gap: 1rem;
+            border-top: 1px dashed var(--border);
+            padding-top: 1rem;
+            margin-top: 0.5rem;
 
-            & label {
-                font-size: 0.9rem;
-                color: var(--fg);
-            }
+            & .input-group {
+                display: flex;
+                flex-direction: column;
+                gap: 0.4rem;
 
-            & textarea {
-                background: rgba(0,0,0,0.3);
-                border: 1px solid var(--border);
-                color: var(--fg);
-                padding: 15px;
-                border-radius: 6px;
-                font-family: inherit;
-                resize: vertical;
-                min-height: 100px;
+                & label {
+                    font-size: 0.85rem;
+                    color: var(--muted);
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
 
-                &:focus {
-                    outline: none;
-                    border-color: var(--accent);
-                    background: rgba(0,0,0,0.5);
+                & .modal-input, & textarea {
+                    background: rgba(0,0,0,0.3);
+                    border: 1px solid var(--border);
+                    color: var(--fg);
+                    padding: 12px 15px;
+                    border-radius: 6px;
+                    font-family: inherit;
+                    width: 100%;
+
+                    &:focus {
+                        outline: none;
+                        border-color: var(--accent);
+                        background: rgba(0,0,0,0.5);
+                    }
+                }
+
+                & textarea {
+                    resize: vertical;
+                    min-height: 80px;
                 }
             }
         }
@@ -343,6 +363,7 @@ body {
         & .modal-actions {
             display: flex;
             gap: 15px;
+            margin-top: 1rem;
 
             & button { flex: 1; }
         }

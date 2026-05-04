@@ -8,28 +8,17 @@ export const State = {
     },
     webhookURL: localStorage.getItem('googleWebhookURL') || "",
 
-    saveSession() {
-        localStorage.setItem('currentSession', JSON.stringify(this.currentSession));
-    },
-
-    saveBank() {
-        localStorage.setItem('workMinuteBank', this.minuteBank);
-    },
-
-    saveHistory() {
-        localStorage.setItem('sessionHistory', JSON.stringify(this.sessionHistory));
-    },
-
+    saveSession() { localStorage.setItem('currentSession', JSON.stringify(this.currentSession)); },
+    saveBank() { localStorage.setItem('workMinuteBank', this.minuteBank); },
+    saveHistory() { localStorage.setItem('sessionHistory', JSON.stringify(this.sessionHistory)); },
     saveWebhook(url) {
         this.webhookURL = url;
         localStorage.setItem('googleWebhookURL', url);
     },
-
     resetSession() {
         this.currentSession = { status: 'IDLE', startTime: null, accumulated: 0 };
         this.saveSession();
     },
-
     hardReset() {
         this.minuteBank = 0;
         this.sessionHistory = [];

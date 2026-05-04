@@ -14,17 +14,16 @@ export const UI = {
         modal: document.getElementById('finishModal'),
         modalStats: document.getElementById('modalStats'),
         descContainer: document.getElementById('descContainer'),
-        sessionDesc: document.getElementById('sessionDesc')
+        sessionDesc: document.getElementById('sessionDesc'),
+        sessionProject: document.getElementById('sessionProject'),
+        projectList: document.getElementById('projectList')
     },
 
-    updateTimerDisplay(ms) {
-        this.elements.display.textContent = Timer.formatMs(ms);
-    },
+    updateTimerDisplay(ms) { this.elements.display.textContent = Timer.formatMs(ms); },
 
     updateControls() {
         const { status } = State.currentSession;
         const { display, badge, btnMain, btnFinish, btnDiscard } = this.elements;
-
         display.classList.remove('running', 'paused');
 
         if (status === 'IDLE') {
@@ -54,18 +53,11 @@ export const UI = {
         }
     },
 
-    updateBank() {
-        this.elements.bankDisplay.textContent = Math.floor(State.minuteBank);
-    },
-
-    showMessage(msg) {
-        this.elements.message.textContent = msg;
-    },
+    updateBank() { this.elements.bankDisplay.textContent = Math.floor(State.minuteBank); },
+    showMessage(msg) { this.elements.message.textContent = msg; },
 
     renderHistory() {
         this.elements.historyTableBody.innerHTML = '';
-
-        // Solo renderizamos las entradas que tienen horas completas
         const validLogs = State.sessionHistory.filter(log => log.hoursBilled > 0);
 
         validLogs.slice(0, 10).forEach(log => {
@@ -75,6 +67,7 @@ export const UI = {
                 <td>${dateStr}</td>
                 <td>${log.hoursBilled} hs</td>
                 <td>${this.escapeHtml(log.desc)}</td>
+                <td>${this.escapeHtml(log.project || '-')}</td>
             `;
             this.elements.historyTableBody.appendChild(row);
         });
@@ -108,19 +101,21 @@ export const UI = {
         if (hoursToLog > 0) {
             this.elements.descContainer.classList.remove('hidden');
             this.elements.sessionDesc.value = '';
+
+            // Poblar datalist con proyectos anteriores únicos
+            const uniqueProjects = [...new Set(State.sessionHistory.map(l => l.project).filter(Boolean))];
+            this.elements.projectList.innerHTML = uniqueProjects.map(p => `<option value="${this.escapeHtml(p)}">`).join('');
+            this.elements.sessionProject.value = '';
+
         } else {
             this.elements.descContainer.classList.add('hidden');
             this.elements.sessionDesc.value = 'Guardado en banco (Automático)';
+            this.elements.sessionProject.value = 'N/A';
         }
 
         this.elements.modal.classList.remove('hidden');
     },
 
-    closeModal() {
-        this.elements.modal.classList.add('hidden');
-    },
-
-    escapeHtml(str) {
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
+    closeModal() { this.elements.modal.classList.add('hidden'); },
+    escapeHtml(str) { return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 };

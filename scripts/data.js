@@ -11,7 +11,7 @@ export const Data = {
         }
     },
 
-    sendToSheet(hours, desc) {
+    sendToSheet(hours, desc, project) {
         if (!State.webhookURL) {
             alert(`IMPORTANTE: No tienes configurada la URL de Google Sheets.\nSe guardó localmente, pero anota manualmente: ${hours} HORAS.`);
             return;
@@ -23,7 +23,7 @@ export const Data = {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ hours: hours, description: desc })
+            body: JSON.stringify({ hours: hours, description: desc, project: project })
         }).then(() => {
             UI.showMessage("¡Sincronizado OK!");
             setTimeout(() => {
@@ -41,7 +41,7 @@ export const Data = {
     exportJson() {
         const payload = {
             app: 'modulime',
-            version: 5.1,
+            version: 6.0,
             bank: State.minuteBank,
             history: State.sessionHistory,
             webhook: State.webhookURL

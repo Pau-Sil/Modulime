@@ -40,6 +40,7 @@
                         <th>Fecha</th>
                         <th>Horas</th>
                         <th>Descripción</th>
+                        <th>Proyecto</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -64,8 +65,16 @@
             </div>
 
             <div id="descContainer" class="modal-desc-container hidden">
-                <label id="descLabel" for="sessionDesc">¿Qué hiciste en estas horas?</label>
-                <textarea id="sessionDesc" rows="4" placeholder="Ej: Fix bug en navbar, diseño de vista principal..."></textarea>
+                <div class="input-group">
+                    <label for="sessionProject">Proyecto</label>
+                    <input type="text" id="sessionProject" list="projectList" placeholder="Ej: Gutenflyerg, Modulime..." class="modal-input">
+                    <datalist id="projectList"></datalist>
+                </div>
+
+                <div class="input-group">
+                    <label id="descLabel" for="sessionDesc">¿Qué hiciste en estas horas?</label>
+                    <textarea id="sessionDesc" rows="4" placeholder="Ej: Fix bug en navbar, diseño de vista principal..."></textarea>
+                </div>
             </div>
 
             <div class="modal-actions">

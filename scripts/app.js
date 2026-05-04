@@ -84,6 +84,10 @@ document.getElementById('btnConfirmFinish').addEventListener('click', () => {
         ? (document.getElementById('sessionDesc').value.trim() || 'Sin descripción')
         : 'Suma a banco';
 
+    const project = hoursToLog > 0
+        ? (document.getElementById('sessionProject').value.trim() || 'General')
+        : '-';
+
     State.minuteBank = newBank;
     State.saveBank();
 
@@ -91,7 +95,8 @@ document.getElementById('btnConfirmFinish').addEventListener('click', () => {
         date: new Date().toISOString(),
         duration: sessionMin,
         hoursBilled: hoursToLog,
-        desc: desc
+        desc: desc,
+        project: project
     });
 
     if (State.sessionHistory.length > 100) State.sessionHistory.pop();
@@ -106,7 +111,7 @@ document.getElementById('btnConfirmFinish').addEventListener('click', () => {
 
     if (hoursToLog > 0) {
         UI.showMessage(`¡Éxito! Registraste ${hoursToLog} hs. Saldo en banco: ${newBank.toFixed(0)} min`);
-        Data.sendToSheet(hoursToLog, desc);
+        Data.sendToSheet(hoursToLog, desc, project);
     } else {
         UI.showMessage(`Guardado. Nuevo banco: ${newBank.toFixed(0)} min`);
     }
