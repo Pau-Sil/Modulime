@@ -1,0 +1,126 @@
+import { State } from './state.js';
+import { Timer } from './timer.js';
+
+export const UI = {
+    elements: {
+        display: document.getElementById('display'),
+        badge: document.getElementById('statusBadge'),
+        btnMain: document.getElementById('btnMain'),
+        btnFinish: document.getElementById('btnFinish'),
+        btnDiscard: document.getElementById('btnDiscard'),
+        bankDisplay: document.getElementById('bankDisplay'),
+        message: document.getElementById('message'),
+        historyTableBody: document.querySelector('#historyTable tbody'),
+        modal: document.getElementById('finishModal'),
+        modalStats: document.getElementById('modalStats'),
+        descContainer: document.getElementById('descContainer'),
+        sessionDesc: document.getElementById('sessionDesc')
+    },
+
+    updateTimerDisplay(ms) {
+        this.elements.display.textContent = Timer.formatMs(ms);
+    },
+
+    updateControls() {
+        const { status } = State.currentSession;
+        const { display, badge, btnMain, btnFinish, btnDiscard } = this.elements;
+
+        display.classList.remove('running', 'paused');
+
+        if (status === 'IDLE') {
+            btnMain.textContent = "Iniciar";
+            btnMain.className = "btn btn-primary";
+            btnFinish.classList.add('hidden');
+            btnDiscard.classList.add('hidden');
+            badge.textContent = "Listo";
+        } else if (status === 'RUNNING') {
+            btnMain.textContent = "Pausar";
+            btnMain.className = "btn";
+            btnMain.style.borderColor = "var(--warn)";
+            btnMain.style.color = "var(--warn)";
+            btnFinish.classList.remove('hidden');
+            btnDiscard.classList.remove('hidden');
+            badge.textContent = "Grabando...";
+            display.classList.add('running');
+        } else if (status === 'PAUSED') {
+            btnMain.textContent = "Reanudar";
+            btnMain.className = "btn btn-success";
+            btnMain.style.borderColor = "";
+            btnMain.style.color = "";
+            btnFinish.classList.remove('hidden');
+            btnDiscard.classList.remove('hidden');
+            badge.textContent = "Pausado";
+            display.classList.add('paused');
+        }
+    },
+
+    updateBank() {
+        this.elements.bankDisplay.textContent = Math.floor(State.minuteBank);
+    },
+
+    showMessage(msg) {
+        this.elements.message.textContent = msg;
+    },
+
+    renderHistory() {
+        this.elements.historyTableBody.innerHTML = '';
+
+        // Solo renderizamos las entradas que tienen horas completas
+        const validLogs = State.sessionHistory.filter(log => log.hoursBilled > 0);
+
+        validLogs.slice(0, 10).forEach(log => {
+            const dateStr = new Date(log.date).toLocaleDateString('es-AR');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${dateStr}</td>
+                <td>${log.hoursBilled} hs</td>
+                <td>${this.escapeHtml(log.desc)}</td>
+            `;
+            this.elements.historyTableBody.appendChild(row);
+        });
+    },
+
+    openModal(sessionMin, potentialBank, hoursToLog, newBank) {
+        this.elements.modalStats.innerHTML = `
+            <div class="stats-row">
+                <span>Tiempo sesión:</span>
+                <strong>${sessionMin.toFixed(1)} min</strong>
+            </div>
+            <div class="stats-row">
+                <span>Total c/ banco:</span>
+                <strong>${potentialBank.toFixed(1)} min</strong>
+            </div>
+            ${hoursToLog > 0
+                ? `<div class="stats-row highlight">
+                    <span>A registrar:</span>
+                    <span>${hoursToLog} hs</span>
+                   </div>`
+                : `<div class="stats-row" style="color: var(--muted); font-size: 0.9rem; text-align: center; margin-top: 10px;">
+                    No se alcanza 1 hora entera. El tiempo irá al banco.
+                   </div>`
+            }
+            <div class="stats-row bank-info">
+                <span>Nuevo banco:</span>
+                <span>${newBank.toFixed(1)} min</span>
+            </div>
+        `;
+
+        if (hoursToLog > 0) {
+            this.elements.descContainer.classList.remove('hidden');
+            this.elements.sessionDesc.value = '';
+        } else {
+            this.elements.descContainer.classList.add('hidden');
+            this.elements.sessionDesc.value = 'Guardado en banco (Automático)';
+        }
+
+        this.elements.modal.classList.remove('hidden');
+    },
+
+    closeModal() {
+        this.elements.modal.classList.add('hidden');
+    },
+
+    escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+};
