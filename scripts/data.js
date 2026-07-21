@@ -13,11 +13,11 @@ export const Data = {
 
     sendToSheet(hours, desc, project) {
         if (!State.webhookURL) {
-            alert(`IMPORTANTE: No tienes configurada la URL de Google Sheets.\nSe guardó localmente, pero anota manualmente: ${hours} HORAS.`);
+            UI.showMessage("No hay webhook configurado. Los datos solo se guardaron localmente.");
             return;
         }
 
-        UI.showMessage("Sincronizando con la nube...");
+        UI.showMessage("Enviando datos a Google Sheets...");
 
         fetch(State.webhookURL, {
             method: 'POST',
@@ -25,16 +25,9 @@ export const Data = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ hours: hours, description: desc, project: project })
         }).then(() => {
-            UI.showMessage("¡Sincronizado OK!");
-            setTimeout(() => {
-                if(document.getElementById('message').textContent === "¡Sincronizado OK!") {
-                    UI.showMessage("Listo.");
-                }
-            }, 3000);
-        }).catch(err => {
-            console.error(err);
-            UI.showMessage("Error de conexión.");
-            alert("Error al intentar conectar con Google Sheets. Revisa tu internet.");
+            UI.showMessage("Datos enviados (no se puede confirmar recepción con Google Sheets).");
+        }).catch(() => {
+            UI.showMessage("Error de conexión al enviar. Los datos quedan guardados localmente.");
         });
     },
 
