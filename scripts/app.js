@@ -27,7 +27,9 @@ document.getElementById('btnMain').addEventListener('click', () => {
         Timer.start(ms => UI.updateTimerDisplay(ms));
     }
     else if (State.currentSession.status === 'RUNNING') {
-        State.currentSession.accumulated += (now - State.currentSession.startTime);
+        if (State.currentSession.startTime !== null) {
+            State.currentSession.accumulated += (now - State.currentSession.startTime);
+        }
         State.currentSession.startTime = null;
         State.currentSession.status = 'PAUSED';
         Timer.stop();
