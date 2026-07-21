@@ -65,7 +65,7 @@ export const UI = {
         }
     },
 
-    updateBank() { this.elements.bankDisplay.textContent = Math.floor(State.minuteBank); },
+    updateBank() { this.elements.bankDisplay.textContent = Math.round(State.minuteBank); },
     showMessage(msg) { this.elements.message.textContent = msg; },
 
     renderHistory() {
