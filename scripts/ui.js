@@ -129,7 +129,14 @@ export const UI = {
     },
 
     closeModal() { this.elements.modal.classList.add('hidden'); },
-    escapeHtml(str) { return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); },
+    escapeHtml(str) {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    },
 
     showAlert(msg) {
         return new Promise(resolve => {
