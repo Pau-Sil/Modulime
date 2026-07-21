@@ -190,6 +190,7 @@ body {
     & .history-container {
         width: 100%;
         margin-top: 1rem;
+        overflow-x: auto;
 
         & .history-title {
             font-size: 0.8rem;
@@ -385,5 +386,20 @@ body {
 
     & .modal-actions {
         margin-top: 0.5rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .history-table {
+        font-size: 0.75rem;
+
+        & th, & td {
+            padding: 8px 6px;
+        }
+
+        & th:nth-child(1), & td:nth-child(1) { width: 18%; }
+        & th:nth-child(2), & td:nth-child(2) { width: 12%; }
+        & th:nth-child(3), & td:nth-child(3) { width: 44%; }
+        & th:nth-child(4), & td:nth-child(4) { width: 26%; }
     }
 }
