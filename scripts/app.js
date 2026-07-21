@@ -46,7 +46,7 @@ document.getElementById('btnMain').addEventListener('click', () => {
 });
 
 document.getElementById('btnDiscard').addEventListener('click', () => {
-    if (confirm("¿Descartar el tiempo de esta sesión?")) {
+    if (confirm(`¿Descartar ${Timer.formatMs(Timer.getLiveMs())} de esta sesión?`)) {
         Timer.stop();
         State.resetSession();
         UI.updateControls();
