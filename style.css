@@ -369,3 +369,21 @@ body {
         }
     }
 }
+
+/* Diálogo genérico */
+.dialog-content {
+    max-width: 420px;
+    text-align: center;
+    gap: 1.5rem;
+
+    & .dialog-message {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: var(--fg);
+        white-space: pre-wrap;
+    }
+
+    & .modal-actions {
+        margin-top: 0.5rem;
+    }
+}

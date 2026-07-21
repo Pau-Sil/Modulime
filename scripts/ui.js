@@ -129,5 +129,78 @@ export const UI = {
     },
 
     closeModal() { this.elements.modal.classList.add('hidden'); },
-    escapeHtml(str) { return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    escapeHtml(str) { return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); },
+
+    showAlert(msg) {
+        return new Promise(resolve => {
+            document.getElementById('dialogMessage').textContent = msg;
+            const okBtn = document.getElementById('btnDialogOk');
+            const cancelBtn = document.getElementById('btnDialogCancel');
+            const dialog = document.getElementById('dialogModal');
+
+            okBtn.textContent = 'Aceptar';
+            cancelBtn.classList.add('hidden');
+            dialog.classList.remove('hidden');
+            okBtn.focus();
+
+            function close() {
+                dialog.classList.add('hidden');
+                okBtn.removeEventListener('click', close);
+                document.removeEventListener('keydown', onKey);
+                resolve();
+            }
+
+            function onKey(e) {
+                if (e.key === 'Escape' || e.key === 'Enter') {
+                    e.preventDefault();
+                    close();
+                }
+            }
+
+            okBtn.addEventListener('click', close);
+            dialog.addEventListener('click', (e) => {
+                if (e.target === e.currentTarget) close();
+            });
+            document.addEventListener('keydown', onKey);
+        });
+    },
+
+    showConfirm(msg) {
+        return new Promise(resolve => {
+            document.getElementById('dialogMessage').textContent = msg;
+            const okBtn = document.getElementById('btnDialogOk');
+            const cancelBtn = document.getElementById('btnDialogCancel');
+            const dialog = document.getElementById('dialogModal');
+
+            okBtn.textContent = 'Aceptar';
+            okBtn.className = 'btn btn-primary';
+            cancelBtn.classList.remove('hidden');
+            dialog.classList.remove('hidden');
+            cancelBtn.focus();
+
+            function close(result) {
+                dialog.classList.add('hidden');
+                okBtn.removeEventListener('click', onOk);
+                cancelBtn.removeEventListener('click', onCancel);
+                document.removeEventListener('keydown', onKey);
+                dialog.removeEventListener('click', onOverlay);
+                resolve(result);
+            }
+
+            function onOk() { close(true); }
+            function onCancel() { close(false); }
+            function onOverlay(e) {
+                if (e.target === e.currentTarget) close(false);
+            }
+            function onKey(e) {
+                if (e.key === 'Escape') { e.preventDefault(); close(false); }
+                if (e.key === 'Enter') { e.preventDefault(); close(true); }
+            }
+
+            okBtn.addEventListener('click', onOk);
+            cancelBtn.addEventListener('click', onCancel);
+            dialog.addEventListener('click', onOverlay);
+            document.addEventListener('keydown', onKey);
+        });
+    }
 };

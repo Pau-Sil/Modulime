@@ -7,7 +7,7 @@ export const Data = {
         const url = prompt("Ingresa la URL de tu Web App de Google Apps Script:", current);
         if (url !== null) {
             State.saveWebhook(url.trim());
-            alert("Webhook configurado correctamente.");
+            UI.showAlert("Webhook configurado correctamente.");
         }
     },
 
