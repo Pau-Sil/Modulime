@@ -19,7 +19,19 @@ export const UI = {
         projectList: document.getElementById('projectList')
     },
 
-    updateTimerDisplay(ms) { this.elements.display.textContent = Timer.formatMs(ms); },
+    updateTimerDisplay(ms) {
+        const formatted = Timer.formatMs(ms);
+        this.elements.display.textContent = formatted;
+
+        const status = State.currentSession.status;
+        if (status === 'RUNNING') {
+            document.title = `▶ ${formatted} - Modulime`;
+        } else if (status === 'PAUSED') {
+            document.title = `⏸ ${formatted} - Modulime`;
+        } else {
+            document.title = 'Modulime';
+        }
+    },
 
     updateControls() {
         const { status } = State.currentSession;
