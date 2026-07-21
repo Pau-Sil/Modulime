@@ -74,12 +74,26 @@ document.getElementById('btnFinish').addEventListener('click', () => {
     UI.openModal(sessionMin, potentialBank, hoursToLog, newBank);
 });
 
-document.getElementById('btnCancelFinish').addEventListener('click', () => {
+document.getElementById('btnCancelFinish').addEventListener('click', () => cancelFinish());
+
+document.getElementById('finishModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) cancelFinish();
+});
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.getElementById('finishModal').classList.contains('hidden')) {
+        cancelFinish();
+    }
+});
+
+function cancelFinish() {
     UI.closeModal();
     if (State.currentSession.status === 'RUNNING') {
         Timer.start(ms => UI.updateTimerDisplay(ms));
+    } else {
+        UI.updateTimerDisplay(Timer.getLiveMs());
     }
-});
+}
 
 document.getElementById('btnConfirmFinish').addEventListener('click', () => {
     if (submitting) return;
