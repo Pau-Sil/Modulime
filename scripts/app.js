@@ -81,8 +81,26 @@ document.getElementById('finishModal').addEventListener('click', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !document.getElementById('finishModal').classList.contains('hidden')) {
+    const modal = document.getElementById('finishModal');
+    const modalOpen = !modal.classList.contains('hidden');
+
+    if (e.key === 'Escape' && modalOpen) {
         cancelFinish();
+        return;
+    }
+
+    if (e.key === 'Enter' && modalOpen && !submitting) {
+        e.preventDefault();
+        document.getElementById('btnConfirmFinish').click();
+        return;
+    }
+
+    const tag = document.activeElement ? document.activeElement.tagName : '';
+    const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+    if (e.key === ' ' && !modalOpen && !isInput) {
+        e.preventDefault();
+        document.getElementById('btnMain').click();
     }
 });
 
