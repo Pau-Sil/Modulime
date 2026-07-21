@@ -56,7 +56,6 @@ document.getElementById('btnDiscard').addEventListener('click', async () => {
     }
 });
 
-let currentSessionCalculations = {};
 let submitting = false;
 
 document.getElementById('btnFinish').addEventListener('click', () => {
@@ -70,7 +69,10 @@ document.getElementById('btnFinish').addEventListener('click', () => {
     const hoursToLog = Math.floor(potentialBank / 60);
     const newBank = potentialBank % 60;
 
-    currentSessionCalculations = { sessionMin, hoursToLog, newBank };
+    const modal = document.getElementById('finishModal');
+    modal.dataset.sessionMin = sessionMin;
+    modal.dataset.hoursToLog = hoursToLog;
+    modal.dataset.newBank = newBank;
 
     UI.openModal(sessionMin, potentialBank, hoursToLog, newBank);
 });
@@ -118,7 +120,10 @@ document.getElementById('btnConfirmFinish').addEventListener('click', () => {
     if (submitting) return;
     submitting = true;
 
-    const { sessionMin, hoursToLog, newBank } = currentSessionCalculations;
+    const modal = document.getElementById('finishModal');
+    const sessionMin = parseFloat(modal.dataset.sessionMin);
+    const hoursToLog = parseInt(modal.dataset.hoursToLog);
+    const newBank = parseFloat(modal.dataset.newBank);
 
     const desc = hoursToLog > 0
         ? (document.getElementById('sessionDesc').value.trim() || 'Sin descripción')
