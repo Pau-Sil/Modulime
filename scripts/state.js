@@ -1,11 +1,31 @@
+function safeJSON(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+function safeFloat(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (raw === null) return fallback;
+        const val = parseFloat(raw);
+        return isNaN(val) ? fallback : Math.round(val * 100) / 100;
+    } catch {
+        return fallback;
+    }
+}
+
 export const State = {
-    minuteBank: parseFloat((parseFloat(localStorage.getItem('workMinuteBank')) || 0).toFixed(2)),
-    sessionHistory: JSON.parse(localStorage.getItem('sessionHistory')) || [],
-    currentSession: JSON.parse(localStorage.getItem('currentSession')) || {
+    minuteBank: safeFloat('workMinuteBank', 0),
+    sessionHistory: safeJSON('sessionHistory', []),
+    currentSession: safeJSON('currentSession', {
         status: 'IDLE',
         startTime: null,
         accumulated: 0
-    },
+    }),
     webhookURL: localStorage.getItem('googleWebhookURL') || "",
 
     saveSession() { localStorage.setItem('currentSession', JSON.stringify(this.currentSession)); },
