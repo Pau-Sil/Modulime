@@ -56,8 +56,10 @@ document.getElementById('btnDiscard').addEventListener('click', () => {
 });
 
 let currentSessionCalculations = {};
+let submitting = false;
 
 document.getElementById('btnFinish').addEventListener('click', () => {
+    submitting = false;
     Timer.stop();
 
     const totalMs = Timer.getLiveMs();
@@ -80,6 +82,9 @@ document.getElementById('btnCancelFinish').addEventListener('click', () => {
 });
 
 document.getElementById('btnConfirmFinish').addEventListener('click', () => {
+    if (submitting) return;
+    submitting = true;
+
     const { sessionMin, hoursToLog, newBank } = currentSessionCalculations;
 
     const desc = hoursToLog > 0
