@@ -4,6 +4,7 @@ import { UI } from './ui.js';
 import { Data } from './data.js';
 
 function init() {
+    State.migrateHistory();
     UI.updateBank();
     UI.renderHistory();
     UI.updateControls();
@@ -13,6 +14,11 @@ function init() {
         localStorage.removeItem('__modulime_test__');
     } catch {
         UI.showMessage("Atención: el almacenamiento local no está disponible. Los datos no se guardarán entre sesiones.");
+    }
+
+    const pendingCount = State.getUnsyncedCount();
+    if (pendingCount > 0 && State.webhookURL) {
+        UI.showMessage(`Hay ${pendingCount} entrada(s) sin sincronizar. Usá "Reintentar sync" para enviarlas.`);
     }
 
     if (State.currentSession.status !== 'IDLE') {
@@ -143,12 +149,16 @@ document.getElementById('btnConfirmFinish').addEventListener('click', () => {
     State.minuteBank = newBank;
     State.saveBank();
 
+    const entryId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
     State.sessionHistory.unshift({
+        id: entryId,
         date: new Date().toISOString(),
         duration: sessionMin,
         hoursBilled: hoursToLog,
         desc: desc,
-        project: project
+        project: project,
+        synced: false
     });
 
     if (State.sessionHistory.length > 100) State.sessionHistory.pop();
@@ -163,13 +173,16 @@ document.getElementById('btnConfirmFinish').addEventListener('click', () => {
 
     if (hoursToLog > 0) {
         UI.showMessage(`¡Éxito! Registraste ${hoursToLog} hs. Saldo en banco: ${newBank.toFixed(0)} min`);
-        Data.sendToSheet(hoursToLog, desc, project);
+        Data.sendToSheet(hoursToLog, desc, project, entryId).then(() => {
+            UI.renderHistory();
+        });
     } else {
         UI.showMessage(`Guardado. Nuevo banco: ${newBank.toFixed(0)} min`);
     }
 });
 
 document.getElementById('btnConfigWebhook').addEventListener('click', () => Data.setupWebhook());
+document.getElementById('btnSyncRetry').addEventListener('click', () => Data.syncPending());
 document.getElementById('btnExportJson').addEventListener('click', () => Data.exportJson());
 
 document.getElementById('btnImportJson').addEventListener('click', () => {

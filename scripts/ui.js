@@ -74,12 +74,15 @@ export const UI = {
 
         validLogs.slice(0, 10).forEach(log => {
             const dateStr = new Date(log.date).toLocaleDateString('es-AR');
+            const syncIcon = log.synced ? '✓' : '⏳';
+            const syncTitle = log.synced ? 'Sincronizado' : 'Pendiente de sincronización';
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${dateStr}</td>
                 <td>${log.hoursBilled} hs</td>
                 <td>${this.escapeHtml(log.desc)}</td>
                 <td>${this.escapeHtml(log.project || '-')}</td>
+                <td class="sync-cell" title="${syncTitle}">${syncIcon}</td>
             `;
             this.elements.historyTableBody.appendChild(row);
         });

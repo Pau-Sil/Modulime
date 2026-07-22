@@ -61,6 +61,34 @@ export const State = {
     saveSession() { safeSet('currentSession', JSON.stringify(this.currentSession)); },
     saveBank() { safeSet('workMinuteBank', Math.round(this.minuteBank * 100) / 100); },
     saveHistory() { safeSet('sessionHistory', JSON.stringify(this.sessionHistory)); },
+
+    migrateHistory() {
+        let changed = false;
+        this.sessionHistory = this.sessionHistory.map(entry => {
+            if (!entry.id) {
+                changed = true;
+                entry.id = entry.date || new Date().toISOString();
+            }
+            if (entry.synced === undefined) {
+                changed = true;
+                entry.synced = true;
+            }
+            return entry;
+        });
+        if (changed) this.saveHistory();
+    },
+
+    markEntrySynced(id) {
+        const entry = this.sessionHistory.find(e => e.id === id);
+        if (entry) {
+            entry.synced = true;
+            this.saveHistory();
+        }
+    },
+
+    getUnsyncedCount() {
+        return this.sessionHistory.filter(e => e.hoursBilled > 0 && !e.synced).length;
+    },
     saveWebhook(url) {
         this.webhookURL = url;
         safeSet('googleWebhookURL', url);
