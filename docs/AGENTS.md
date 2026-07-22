@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Modulime is a **single-page work-time tracker** — vanilla JS, no frameworks, no build step, no npm. It counts fractional work minutes, accumulates them in a "minute bank", and bills whole hours to a Google Sheet via a webhook. Open `index.html` directly in a browser to run it. There are **no tests, no linting, no CI**.
+Modulime is a **single-page work-time tracker** — vanilla JS, no frameworks, no build step, no npm. It counts fractional work minutes, accumulates them in a "minute bank", and bills whole hours to a Google Sheet via a webhook. Deployed via GitHub Pages. There are **no tests, no linting, no CI**.
 
 ## File structure
 
@@ -30,10 +30,10 @@ All persistent state lives in `localStorage` under four keys. All reads go throu
 |---|---|
 | `currentSession` | `{ status: 'IDLE'|'RUNNING'|'PAUSED', startTime: number|null, accumulated: number }` |
 | `workMinuteBank` | `number` (fractional minutes, rounded to 2 decimals on every save) |
-| `sessionHistory` | `Array<{ date: ISO-string, duration: number, hoursBilled: number, desc: string, project: string }>` |
+| `sessionHistory` | `Array<{ id: string, date: ISO-string, duration: number, hoursBilled: number, desc: string, project: string, synced: boolean }>` |
 | `googleWebhookURL` | `string` |
 
-`State` is exported as a plain object. There is **no reactivity** — callers must manually update the UI after mutating state.
+`State` is exported as a plain object. There is **no reactivity** — callers must manually update the UI after mutating state. `migrateHistory()` adds `id` and `synced` fields to older entries on load. `getUnsyncedCount()` returns how many entries with `hoursBilled > 0` have `synced: false`.
 
 ### Timer (`timer.js`)
 Uses `requestAnimationFrame` loop calling `getLiveMs()` on every frame. The timer does **not** count ticks — it computes elapsed time as `accumulated + (Date.now() - startTime)`. This means the timer is accurate even if the tab sleeps or the browser throttles rAF.
@@ -62,9 +62,20 @@ On "Terminar":
 All DOM elements are cached once in `UI.elements` object. Methods directly manipulate DOM. `updateControls()` toggles button visibility, text, and CSS classes based on `State.currentSession.status`. Also provides `showAlert(msg)` and `showConfirm(msg)` that render styled modal dialogs (no native `alert`/`confirm`). `updateTimerDisplay()` also updates `document.title` with a running/paused prefix. `escapeHtml()` now also escapes quotes for safe attribute insertion.
 
 ### Data (`data.js`)
-- `sendToSheet()` uses `fetch` with `mode: 'no-cors'` — **responses are opaque**, so success can't be confirmed. The UI message is honest about this.
+- `sendToSheet(hours, desc, project, entryId)` sends to the webhook and marks the entry as synced on completion. Returns a Promise. Includes `id` in the payload for idempotency on the sheet side.
+- `syncPending()` iterates over all unsynced entries (hoursBilled > 0, synced = false) and sends them sequentially. Updates `synced` flag and re-renders history on completion.
+- `sendToSheet()` uses `fetch` with `mode: 'no-cors'` — responses are opaque, so success can't be confirmed. The entry is optimistically marked as synced after the fetch resolves.
 - Export/Import uses a JSON format: `{ app, version, bank, history, webhook }`. Version is hardcoded `6.0`.
 - File download creates a blob + temporary `<a>` element.
+
+### Sync model
+- Entries with `hoursBilled > 0` start with `synced: false`.
+- `sendToSheet` tries to send immediately. If the fetch resolves, the entry is marked `synced: true`.
+- If fetch rejects (network error), the entry stays `synced: false`.
+- `syncPending()` can be triggered manually (button) to retry all unsynced entries in order.
+- On init, if unsynced entries exist and a webhook is configured, a warning is shown.
+- The sheet script uses the `id` field to skip already-processed entries (idempotency).
+- `migrateHistory()` runs on init to add `id` and `synced` fields to older entries; missing `synced` defaults to `true` (assumed previously synced).
 
 ### Keyboard shortcuts (app.js)
 - `Espacio` — Iniciar / Pausar / Reanudar (ignorado si el foco está en un input/textarea)
@@ -73,7 +84,7 @@ All DOM elements are cached once in `UI.elements` object. Methods directly manip
 
 ## Commands
 
-There is no build step. Open `index.html` directly or serve from any static file server:
+No build step. Deployed via GitHub Pages. For local development, serve the project root:
 
 ```bash
 # Serve locally (Python)

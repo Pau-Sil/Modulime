@@ -1,6 +1,6 @@
 # Modulime
 
-Registrador de horas de trabajo con banco de minutos y sincronización a Google Sheets. Abrí `index.html` en el navegador y listo — sin instalar nada.
+Registrador de horas de trabajo con banco de minutos y sincronización a Google Sheets. Publicado con GitHub Pages — sin instalar nada, siempre disponible desde el navegador.
 
 ## Cómo funciona
 
@@ -12,16 +12,15 @@ Cada vez que se registran horas, se envía la información a un Google Sheet con
 
 ## Uso
 
-1. Abrí `index.html` en tu navegador (o servilo con `python3 -m http.server 8080`).
-2. Presioná **Iniciar** (o la barra espaciadora) para arrancar el timer.
-3. Trabajá normalmente. Podés pausar y reanudar cuando quieras.
-4. Al terminar, presioná **Terminar** → se abre un modal con el resumen:
+1. Entrá a la página (GitHub Pages) y presioná **Iniciar** (o la barra espaciadora) para arrancar el timer.
+2. Trabajá normalmente. Podés pausar y reanudar cuando quieras.
+3. Al terminar, presioná **Terminar** → se abre un modal con el resumen:
    - Cuántos minutos trabajaste
    - Total acumulado con el banco
    - Horas que se van a registrar
    - Nuevo saldo del banco
-5. Si se registra al menos 1 hora, completá la descripción y el proyecto.
-6. Confirmá y los datos se guardan localmente y se envían a Google Sheets.
+4. Si se registra al menos 1 hora, completá la descripción y el proyecto.
+5. Confirmá y los datos se guardan localmente y se envían a Google Sheets.
 
 ### Atajos de teclado
 
@@ -31,6 +30,10 @@ Cada vez que se registran horas, se envía la información a un Google Sheet con
 | `Enter` | Confirmar en el modal |
 | `Escape` | Cancelar / Cerrar modal |
 
+### Sincronización
+
+Cada sesión que registra horas intenta enviarse a Google Sheets automáticamente. Si la conexión falla, la entrada queda marcada como **pendiente** (⏳ en la tabla del historial). Usá el botón **Reintentar sync** para reenviar todas las pendientes.
+
 ### Backup y restauración
 
 Usá los botones del pie de página para exportar un backup JSON o restaurar desde uno anterior. El historial se guarda en el navegador — si cambiás de dispositivo, exportá e importá.
@@ -39,27 +42,25 @@ Usá los botones del pie de página para exportar un backup JSON o restaurar des
 
 ### Configuración
 
-1. Creá un Google Sheet con una hoja llamada **Registros**.
-2. En la primera fila poné los encabezados: `Fecha | Horas | Descripción | Proyecto`.
-3. Andá a **Extensiones → Apps Script** y pegá el contenido de [`docs/sheets.gs`](docs/sheets.gs).
-4. Desplegalo como **aplicación web** (Deploy → New deployment → Web app):
+1. Creá un Google Sheet con una hoja llamada **Registros** (si no existe, el script la crea automáticamente).
+2. Andá a **Extensiones → Apps Script** y pegá el contenido de [`docs/sheets.gs`](docs/sheets.gs).
+3. Desplegalo como **aplicación web** (Deploy → New deployment → Web app):
    - **Execute as:** Me
-   - **Who has access:** Anyone (o Anyone with link)
-5. Copiá la URL que te da y pegala en Modulime: botón **Config Sheet URL**.
+   - **Who has access:** Anyone
+4. Copiá la URL que te da y pegala en Modulime: botón **Config Sheet URL**.
 
 Cada vez que Modulime registre horas, el script va a:
-- Buscar si ya existe una fila con la fecha de hoy.
-- Si existe: suma las horas a esa fila y actualiza descripción y proyecto.
+- Buscar si ya existe una fila con la fecha de hoy (en toda la planilla, no solo las últimas filas).
+- Verificar que el ID de la sesión no haya sido procesado antes (evita duplicados).
+- Si la fecha ya existe: suma las horas y **concatena** la descripción y proyecto (no los pisa).
 - Si no: crea una fila nueva.
 
-Las columnas esperadas son: `A = Fecha`, `B = Horas`, `C = Descripción`, `D = Proyecto`.
+Las columnas son: `A = Fecha`, `B = Horas`, `C = Descripción`, `D = Proyecto`, `E = ID`.
 
-### Limitaciones del script
+### Limitaciones
 
-- La búsqueda de la fecha actual solo mira las últimas 30 filas. Si la planilla tiene cientos de filas y hoy quedó muy atrás, se va a crear una fila duplicada.
-- Si trabajás en varios proyectos en un mismo día, cada sesión nueva **pisa** la descripción y proyecto de la anterior (pero las horas se acumulan correctamente).
-- El script asume que la hoja se llama exactamente `Registros` y que existe. Si no, falla.
-- El envío usa `no-cors`, por lo que Modulime no puede confirmar si Google Sheets recibió los datos — lo informa en pantalla.
+- El envío usa `no-cors`, por lo que Modulime no puede confirmar si Google Sheets recibió los datos — las entradas enviadas se marcan como sincronizadas asumiendo que llegaron.
+- Si trabajás en varias sesiones en un mismo día, las descripciones y proyectos se concatenan con saltos de línea. Si repetís exactamente la misma descripción, no se duplica.
 
 ## Estructura del proyecto
 
@@ -69,10 +70,10 @@ style.css           — Estilos (CSS nativo con custom properties, paleta Gruvbo
 fonts.css           — Roboto Mono (woff2 en fonts/)
 scripts/
   app.js            — Punto de entrada, listeners, atajos de teclado
-  state.js          — Estado en localStorage (lectura/escritura segura)
+  state.js          — Estado en localStorage (lectura/escritura segura, migración)
   timer.js          — Timer por requestAnimationFrame (preciso con tab sleep)
-  ui.js             — Manipulación de DOM, diálogos modales
-  data.js           — Webhook a Google Sheets, import/export JSON
+  ui.js             — Manipulación de DOM, diálogos modales, indicador de sync
+  data.js           — Webhook a Google Sheets, cola de reintento, import/export JSON
 docs/
   AGENTS.md         — Guía para agentes de IA que trabajen en el proyecto
   revision.md       — Revisión completa de bugs, UX y mejoras
@@ -83,7 +84,7 @@ Tecnologías: HTML, CSS nativo con nesting, JS módulos ES. Cero dependencias, c
 
 ## Desarrollo
 
-No hay tests ni linting. Abrí `index.html` directamente o servilo con cualquier servidor estático:
+Para desarrollo local, serví la raíz del proyecto con cualquier servidor estático:
 
 ```bash
 python3 -m http.server 8080
