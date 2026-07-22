@@ -8,6 +8,13 @@ function init() {
     UI.renderHistory();
     UI.updateControls();
 
+    try {
+        localStorage.setItem('__modulime_test__', '1');
+        localStorage.removeItem('__modulime_test__');
+    } catch {
+        UI.showMessage("Atención: el almacenamiento local no está disponible. Los datos no se guardarán entre sesiones.");
+    }
+
     if (State.currentSession.status !== 'IDLE') {
         if (State.currentSession.status === 'RUNNING') {
             Timer.start(ms => UI.updateTimerDisplay(ms));

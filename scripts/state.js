@@ -1,6 +1,36 @@
+function storageAvailable() {
+    try {
+        const key = '__modulime_test__';
+        localStorage.setItem(key, '1');
+        localStorage.removeItem(key);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+const hasStorage = storageAvailable();
+
+function safeSet(key, value) {
+    if (!hasStorage) return;
+    try {
+        localStorage.setItem(key, value);
+    } catch {
+    }
+}
+
+function safeGet(key) {
+    if (!hasStorage) return null;
+    try {
+        return localStorage.getItem(key);
+    } catch {
+        return null;
+    }
+}
+
 function safeJSON(key, fallback) {
     try {
-        const raw = localStorage.getItem(key);
+        const raw = safeGet(key);
         return raw ? JSON.parse(raw) : fallback;
     } catch {
         return fallback;
@@ -9,7 +39,7 @@ function safeJSON(key, fallback) {
 
 function safeFloat(key, fallback) {
     try {
-        const raw = localStorage.getItem(key);
+        const raw = safeGet(key);
         if (raw === null) return fallback;
         const val = parseFloat(raw);
         return isNaN(val) ? fallback : Math.round(val * 100) / 100;
@@ -26,14 +56,14 @@ export const State = {
         startTime: null,
         accumulated: 0
     }),
-    webhookURL: localStorage.getItem('googleWebhookURL') || "",
+    webhookURL: safeGet('googleWebhookURL') || "",
 
-    saveSession() { localStorage.setItem('currentSession', JSON.stringify(this.currentSession)); },
-    saveBank() { localStorage.setItem('workMinuteBank', this.minuteBank); },
-    saveHistory() { localStorage.setItem('sessionHistory', JSON.stringify(this.sessionHistory)); },
+    saveSession() { safeSet('currentSession', JSON.stringify(this.currentSession)); },
+    saveBank() { safeSet('workMinuteBank', this.minuteBank); },
+    saveHistory() { safeSet('sessionHistory', JSON.stringify(this.sessionHistory)); },
     saveWebhook(url) {
         this.webhookURL = url;
-        localStorage.setItem('googleWebhookURL', url);
+        safeSet('googleWebhookURL', url);
     },
     resetSession() {
         this.currentSession = { status: 'IDLE', startTime: null, accumulated: 0 };
