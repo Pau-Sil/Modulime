@@ -32,7 +32,7 @@ Cada vez que se registran horas, se envía la información a un Google Sheet con
 
 ### Sincronización
 
-Cada sesión que registra horas intenta enviarse a Google Sheets automáticamente. Si la conexión falla, la entrada queda marcada como **pendiente** (⏳ en la tabla del historial). Usá el botón **Reintentar sync** para reenviar todas las pendientes.
+Cada sesión que registra horas intenta enviarse a Google Sheets automáticamente. Si la conexión falla, la entrada queda marcada como **pendiente** (borde naranja en la tabla del historial). Usá el botón **Reintentar sync** para reenviar todas las pendientes.
 
 ### Backup y restauración
 
