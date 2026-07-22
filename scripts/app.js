@@ -71,10 +71,10 @@ document.getElementById('btnFinish').addEventListener('click', () => {
 
     const totalMs = Timer.getLiveMs();
     const sessionMin = totalMs / 60000;
-    const potentialBank = State.minuteBank + sessionMin;
+    const potentialBank = Math.round((State.minuteBank + sessionMin) * 100) / 100;
 
     const hoursToLog = Math.floor(potentialBank / 60);
-    const newBank = potentialBank % 60;
+    const newBank = Math.round((potentialBank % 60) * 100) / 100;
 
     const modal = document.getElementById('finishModal');
     modal.dataset.sessionMin = sessionMin;

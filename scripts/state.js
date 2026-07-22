@@ -59,7 +59,7 @@ export const State = {
     webhookURL: safeGet('googleWebhookURL') || "",
 
     saveSession() { safeSet('currentSession', JSON.stringify(this.currentSession)); },
-    saveBank() { safeSet('workMinuteBank', this.minuteBank); },
+    saveBank() { safeSet('workMinuteBank', Math.round(this.minuteBank * 100) / 100); },
     saveHistory() { safeSet('sessionHistory', JSON.stringify(this.sessionHistory)); },
     saveWebhook(url) {
         this.webhookURL = url;
