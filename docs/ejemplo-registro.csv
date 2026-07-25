@@ -1,0 +1,6 @@
+id,fecha,horas,descripcion,proyecto
+m4k2n9x1,25/07/2026,3,Fix bug en navbar y diseño de vista principal,Gutenflyerg
+a7b3c1d4,25/07/2026,2,Refactor de módulo de autenticación,Modulime
+k9p2w5r8,24/07/2026,4,Implementar endpoints de API y tests de integración,Backend
+x1y7z3v6,23/07/2026,1,Reunión de planificación semanal,General
+n5m8q2t0,22/07/2026,3,Corregir estilos responsive en panel de admin,Gutenflyerg
