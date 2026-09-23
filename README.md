@@ -67,7 +67,7 @@ Las columnas son: `A = Fecha`, `B = Horas`, `C = Descripción`, `D = Proyecto`, 
 ```
 index.html          — Interfaz completa (timer, modal, diálogos)
 style.css           — Estilos (CSS nativo con custom properties, paleta Gruvbox)
-fonts.css           — Roboto Mono (woff2 en fonts/)
+fonts.css           — JetBrains Mono (woff2 en fonts/)
 scripts/
   app.js            — Punto de entrada, listeners, atajos de teclado
   state.js          — Estado en localStorage (lectura/escritura segura, migración)
@@ -75,7 +75,7 @@ scripts/
   ui.js             — Manipulación de DOM, diálogos modales, indicador de sync
   data.js           — Webhook a Google Sheets, cola de reintento, import/export JSON
 docs/
-  AGENTS.md         — Guía para agentes de IA que trabajen en el proyecto
+  AGENTS.md         — Guía para agentes de IA (ver AGENTS.md en la raíz)
   revision.md       — Revisión completa de bugs, UX y mejoras
   sheets.gs         — Script de Google Apps Script para el webhook
 ```
@@ -92,4 +92,4 @@ python3 -m http.server 8080
 
 Los datos se persisten en `localStorage` bajo estas claves: `currentSession`, `workMinuteBank`, `sessionHistory`, `googleWebhookURL`. Si las cambiás, perdés los datos existentes del usuario.
 
-Más detalles de arquitectura y convenciones en [`docs/AGENTS.md`](docs/AGENTS.md).
+Más detalles de arquitectura y convenciones en [`AGENTS.md`](AGENTS.md).
