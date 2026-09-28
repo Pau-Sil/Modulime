@@ -4,7 +4,6 @@ import { Timer } from './timer.js';
 export const UI = {
     elements: {
         display: document.getElementById('display'),
-        badge: document.getElementById('statusBadge'),
         btnMain: document.getElementById('btnMain'),
         btnFinish: document.getElementById('btnFinish'),
         btnDiscard: document.getElementById('btnDiscard'),
@@ -26,9 +25,9 @@ export const UI = {
 
         const status = State.currentSession.status;
         if (status === 'RUNNING') {
-            document.title = `▶ ${formatted} - Modulime`;
+            document.title = 'Activo';
         } else if (status === 'PAUSED') {
-            document.title = `⏸ ${formatted} - Modulime`;
+            document.title = 'Pausado';
         } else {
             document.title = 'Modulime';
         }
@@ -36,7 +35,7 @@ export const UI = {
 
     updateControls() {
         const { status } = State.currentSession;
-        const { display, badge, btnMain, btnFinish, btnDiscard } = this.elements;
+        const { display, btnMain, btnFinish, btnDiscard } = this.elements;
         display.classList.remove('running', 'paused');
 
         if (status === 'IDLE') {
@@ -44,7 +43,6 @@ export const UI = {
             btnMain.className = "btn btn-primary";
             btnFinish.classList.add('hidden');
             btnDiscard.classList.add('hidden');
-            badge.textContent = "Listo";
         } else if (status === 'RUNNING') {
             btnMain.textContent = "Pausar";
             btnMain.className = "btn";
@@ -52,7 +50,6 @@ export const UI = {
             btnMain.style.color = "var(--warn)";
             btnFinish.classList.remove('hidden');
             btnDiscard.classList.remove('hidden');
-            badge.textContent = "Grabando...";
             display.classList.add('running');
         } else if (status === 'PAUSED') {
             btnMain.textContent = "Reanudar";
@@ -61,7 +58,6 @@ export const UI = {
             btnMain.style.color = "";
             btnFinish.classList.remove('hidden');
             btnDiscard.classList.remove('hidden');
-            badge.textContent = "Pausado";
             display.classList.add('paused');
         }
     },
