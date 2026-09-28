@@ -1,10 +1,6 @@
 import { State } from './state.js';
 import { UI } from './ui.js';
 
-function uid() {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-}
-
 export const Data = {
     setupWebhook() {
         const current = State.webhookURL;
@@ -15,25 +11,44 @@ export const Data = {
         }
     },
 
-    sendToSheet(hours, desc, project, entryId) {
-        if (!State.webhookURL) {
-            UI.showMessage("No hay webhook configurado. Los datos solo se guardaron localmente.");
-            if (entryId) State.markEntrySynced(entryId);
-            return Promise.resolve();
-        }
+    formatLocalDate(value) {
+        const d = (value instanceof Date) ? value : new Date(value);
+        const valid = !isNaN(d.getTime()) ? d : new Date();
+        const day = String(valid.getDate()).padStart(2, '0');
+        const month = String(valid.getMonth() + 1).padStart(2, '0');
+        const year = valid.getFullYear();
+        return `${day}/${month}/${year}`;
+    },
 
-        UI.showMessage("Enviando datos a Google Sheets...");
-
+    postEntry(entry) {
         return fetch(State.webhookURL, {
             method: 'POST',
             mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                id: entryId,
-                hours: hours,
-                description: desc,
-                project: project
+                id: entry.id,
+                date: entry.date,
+                hours: entry.hours,
+                description: entry.description,
+                project: entry.project
             })
+        });
+    },
+
+    sendToSheet(hours, desc, project, entryId) {
+        if (!State.webhookURL) {
+            UI.showMessage("No hay webhook configurado. Los datos solo se guardaron localmente.");
+            return Promise.resolve();
+        }
+
+        UI.showMessage("Enviando datos a Google Sheets...");
+
+        return this.postEntry({
+            id: entryId,
+            date: this.formatLocalDate(new Date()),
+            hours: hours,
+            description: desc,
+            project: project
         }).then(() => {
             if (entryId) State.markEntrySynced(entryId);
             UI.showMessage("Datos enviados (no se puede confirmar recepción con Google Sheets).");
@@ -59,16 +74,12 @@ export const Data = {
         let chain = Promise.resolve();
         pending.forEach(entry => {
             chain = chain.then(() =>
-                fetch(State.webhookURL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: entry.id,
-                        hours: entry.hoursBilled,
-                        description: entry.desc,
-                        project: entry.project
-                    })
+                this.postEntry({
+                    id: entry.id,
+                    date: this.formatLocalDate(entry.date),
+                    hours: entry.hoursBilled,
+                    description: entry.desc,
+                    project: entry.project
                 }).then(() => {
                     State.markEntrySynced(entry.id);
                 }).catch(() => {
@@ -104,10 +115,24 @@ export const Data = {
         reader.onload = e => {
             try {
                 const data = JSON.parse(e.target.result);
-                if (typeof data.bank !== 'number') throw new Error('Formato inválido');
+                if (typeof data.bank !== 'number' || isNaN(data.bank)) throw new Error('Formato inválido');
+                if (data.history !== undefined && !Array.isArray(data.history)) throw new Error('Formato inválido');
+
+                const history = (data.history || []).map(entry => {
+                    if (!entry || typeof entry !== 'object') throw new Error('Formato inválido');
+                    return {
+                        id: entry.id || entry.date || new Date().toISOString(),
+                        date: entry.date || new Date().toISOString(),
+                        duration: typeof entry.duration === 'number' ? entry.duration : 0,
+                        hoursBilled: typeof entry.hoursBilled === 'number' ? entry.hoursBilled : 0,
+                        desc: entry.desc || '',
+                        project: entry.project || '',
+                        synced: typeof entry.synced === 'boolean' ? entry.synced : true
+                    };
+                });
 
                 State.minuteBank = data.bank;
-                State.sessionHistory = data.history || [];
+                State.sessionHistory = history;
                 if (data.webhook) State.saveWebhook(data.webhook);
 
                 State.saveBank();
