@@ -9,9 +9,8 @@ function doPost(e) {
     return ContentService.createTextOutput("Error: horas inválidas");
   }
 
-  var fechaHoy = new Date();
   var zonaHoraria = Session.getScriptTimeZone();
-  var fechaStr = Utilities.formatDate(fechaHoy, zonaHoraria, "dd/MM/yyyy");
+  var fechaStr = data.date || Utilities.formatDate(new Date(), zonaHoraria, "dd/MM/yyyy");
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("Registros");
