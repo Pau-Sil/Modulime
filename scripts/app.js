@@ -149,7 +149,7 @@ document.getElementById('btnConfirmFinish').addEventListener('click', () => {
     State.minuteBank = newBank;
     State.saveBank();
 
-    const entryId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    const entryId = State.newId();
 
     State.sessionHistory.unshift({
         id: entryId,

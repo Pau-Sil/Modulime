@@ -89,6 +89,9 @@ export const State = {
     getUnsyncedCount() {
         return this.sessionHistory.filter(e => e.hoursBilled > 0 && !e.synced).length;
     },
+    newId() {
+        return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    },
     saveWebhook(url) {
         this.webhookURL = url;
         safeSet('googleWebhookURL', url);
