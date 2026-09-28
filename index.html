@@ -10,10 +10,38 @@
 </head>
 <body>
 
+    <header class="topbar">
+        <div class="topbar-left">
+            <button id="btnMenu" class="topbar-btn">Menu</button>
+            <button id="btnSync" class="topbar-btn">Sync</button>
+        </div>
+        <div class="topbar-center">
+            <h1 class="topbar-title">Modulime</h1>
+        </div>
+        <div class="topbar-right"></div>
+    </header>
+
+    <nav id="menu" class="menu hidden">
+        <div class="menu-group">
+            <button id="btnNube" class="menu-btn">Nube</button>
+            <div id="subNube" class="submenu hidden">
+                <button id="btnConfigWebhook" class="menu-btn">Sheet</button>
+                <button id="btnConfigCsv" class="menu-btn">Registros</button>
+                <button id="btnConfigConfigCsv" class="menu-btn">Config</button>
+                <button id="btnConfigRate" class="menu-btn">Tarifa</button>
+            </div>
+        </div>
+        <div class="menu-group">
+            <button id="btnBackup" class="menu-btn">Backup</button>
+            <div id="subBackup" class="submenu hidden">
+                <button id="btnExportJson" class="menu-btn">Export</button>
+                <button id="btnImportJson" class="menu-btn">Import</button>
+            </div>
+        </div>
+        <button id="btnReset" class="menu-btn menu-danger">Borrar datos</button>
+    </nav>
+
     <main class="app">
-        <header class="header">
-            <h1 class="title">Modulime</h1>
-        </header>
 
         <section class="tracker">
             <div id="display" class="display">00:00:00</div>
@@ -52,19 +80,9 @@
             </div>
         </section>
 
-        <footer class="data-controls">
-            <button id="btnConfigWebhook" class="btn btn-small">Config Sheet URL</button>
-            <button id="btnConfigCsv" class="btn btn-small">Config CSV Registros</button>
-            <button id="btnConfigConfigCsv" class="btn btn-small">Config CSV Config</button>
-            <button id="btnSyncRetry" class="btn btn-small">Reintentar sync</button>
-            <button id="btnVerifySync" class="btn btn-small">Verificar sync</button>
-            <button id="btnConfigRate" class="btn btn-small">Configurar tarifa</button>
-            <button id="btnExportJson" class="btn btn-small">Backup JSON</button>
-            <button id="btnImportJson" class="btn btn-small">Restaurar JSON</button>
-            <button id="btnReset" class="btn btn-small btn-danger-outline">Borrar Datos</button>
-            <input type="file" id="importFile" accept=".json" class="hidden">
-        </footer>
     </main>
+
+    <input type="file" id="importFile" accept=".json" class="hidden">
 
     <div id="finishModal" class="modal hidden">
         <div class="modal-content">

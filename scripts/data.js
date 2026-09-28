@@ -234,7 +234,7 @@ export const Data = {
             );
         });
 
-        chain.then(() => {
+        return chain.then(() => {
             UI.renderHistory();
             const remaining = State.getUnsyncedCount();
             if (remaining === 0) {

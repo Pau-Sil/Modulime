@@ -30,6 +30,34 @@ async function resolveConflicts(conflicts) {
     }
 }
 
+async function restoreConfig() {
+    if (!State.configCsvURL) return;
+    try {
+        const config = await Data.fetchConfig();
+        if (config.hourlyRate !== undefined && State.hourlyRate === 0) {
+            State.saveHourlyRate(parseFloat(config.hourlyRate) || 0);
+        }
+        if (config.minuteBank !== undefined && State.minuteBank === 0) {
+            State.minuteBank = Math.round((parseFloat(config.minuteBank) || 0) * 100) / 100;
+            State.saveBank();
+        }
+        UI.updateBank();
+    } catch (err) {
+        console.error("Error al leer el CSV de Config:", err);
+    }
+}
+
+async function fullSync() {
+    UI.showMessage("Sincronizando...");
+    await restoreConfig();
+    await Data.syncPending();
+    if (State.csvURL) {
+        const { conflicts } = await Data.reconcile();
+        await resolveConflicts(conflicts);
+    }
+    UI.showMessage("Sincronización completa.");
+}
+
 function init() {
     State.migrateHistory();
     UI.updateBank();
@@ -60,18 +88,7 @@ function init() {
         Data.reconcile().then(({ conflicts }) => resolveConflicts(conflicts));
     }
     if (State.configCsvURL) {
-        Data.fetchConfig().then(config => {
-            if (config.hourlyRate !== undefined && State.hourlyRate === 0) {
-                State.saveHourlyRate(parseFloat(config.hourlyRate) || 0);
-            }
-            if (config.minuteBank !== undefined && State.minuteBank === 0) {
-                State.minuteBank = Math.round((parseFloat(config.minuteBank) || 0) * 100) / 100;
-                State.saveBank();
-            }
-            UI.updateBank();
-        }).catch(err => {
-            console.error("Error al leer el CSV de Config:", err);
-        });
+        restoreConfig();
     }
 }
 
@@ -238,11 +255,38 @@ document.getElementById('btnConfirmFinish').addEventListener('click', () => {
     }
 });
 
+function closeMenu() {
+    document.getElementById('menu').classList.add('hidden');
+    document.getElementById('subNube').classList.add('hidden');
+    document.getElementById('subBackup').classList.add('hidden');
+}
+
+document.getElementById('btnMenu').addEventListener('click', () => {
+    const menu = document.getElementById('menu');
+    if (menu.classList.contains('hidden')) {
+        menu.classList.remove('hidden');
+    } else {
+        closeMenu();
+    }
+});
+document.getElementById('btnNube').addEventListener('click', () => {
+    document.getElementById('subNube').classList.toggle('hidden');
+});
+document.getElementById('btnBackup').addEventListener('click', () => {
+    document.getElementById('subBackup').classList.toggle('hidden');
+});
+document.getElementById('btnSync').addEventListener('click', () => fullSync());
+
+document.addEventListener('click', (e) => {
+    const menu = document.getElementById('menu');
+    const btnMenu = document.getElementById('btnMenu');
+    if (!menu.classList.contains('hidden') && !menu.contains(e.target) && e.target !== btnMenu) {
+        closeMenu();
+    }
+});
 document.getElementById('btnConfigWebhook').addEventListener('click', () => Data.setupWebhook());
 document.getElementById('btnConfigCsv').addEventListener('click', () => Data.setupCsvUrl());
 document.getElementById('btnConfigConfigCsv').addEventListener('click', () => Data.setupConfigCsvUrl());
-document.getElementById('btnSyncRetry').addEventListener('click', () => Data.syncPending());
-document.getElementById('btnVerifySync').addEventListener('click', () => Data.reconcile().then(({ conflicts }) => resolveConflicts(conflicts)));
 document.getElementById('btnConfigRate').addEventListener('click', () => Data.setupHourlyRate());
 document.getElementById('btnExportJson').addEventListener('click', () => Data.exportJson());
 
