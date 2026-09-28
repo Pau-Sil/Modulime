@@ -22,16 +22,28 @@
     --border: rgba(205, 214, 244, 0.1);
 }
 
-:root[data-theme="tokyonight"] {
-    --bg: #1a1b26;
-    --bg-surface: #16161e;
-    --fg: #c0caf5;
-    --accent: #7aa2f7;
-    --warn: #ff9e64;
-    --danger: #f7768e;
-    --muted: #565f89;
-    --success: #9ece6a;
-    --border: rgba(192, 202, 245, 0.1);
+:root[data-theme="onedark"] {
+    --bg: #282c34;
+    --bg-surface: #21252b;
+    --fg: #abb2bf;
+    --accent: #61afef;
+    --warn: #d19a66;
+    --danger: #e06c75;
+    --muted: #5c6370;
+    --success: #98c379;
+    --border: rgba(171, 178, 191, 0.12);
+}
+
+:root[data-theme="githubdark"] {
+    --bg: #0d1117;
+    --bg-surface: #161b22;
+    --fg: #c9d1d9;
+    --accent: #58a6ff;
+    --warn: #d29922;
+    --danger: #f85149;
+    --muted: #8b949e;
+    --success: #3fb950;
+    --border: rgba(201, 209, 217, 0.12);
 }
 
 *, *::before, *::after {
