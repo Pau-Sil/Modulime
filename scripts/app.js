@@ -67,8 +67,10 @@ function init() {
             if (config.minuteBank !== undefined && State.minuteBank === 0) {
                 State.minuteBank = Math.round((parseFloat(config.minuteBank) || 0) * 100) / 100;
                 State.saveBank();
-                UI.updateBank();
             }
+            UI.updateBank();
+        }).catch(err => {
+            console.error("Error al leer el CSV de Config:", err);
         });
     }
 }

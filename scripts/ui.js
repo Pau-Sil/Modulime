@@ -9,6 +9,7 @@ export const UI = {
         btnFinish: document.getElementById('btnFinish'),
         btnDiscard: document.getElementById('btnDiscard'),
         bankDisplay: document.getElementById('bankDisplay'),
+        rateDisplay: document.getElementById('rateDisplay'),
         message: document.getElementById('message'),
         historyTableBody: document.querySelector('#historyTable tbody'),
         modal: document.getElementById('finishModal'),
@@ -65,7 +66,10 @@ export const UI = {
         }
     },
 
-    updateBank() { this.elements.bankDisplay.textContent = Math.round(State.minuteBank); },
+    updateBank() {
+        this.elements.bankDisplay.textContent = Math.round(State.minuteBank);
+        this.elements.rateDisplay.textContent = `$${State.hourlyRate}/h`;
+    },
     showMessage(msg) { this.elements.message.textContent = msg; },
 
     renderHistory() {
