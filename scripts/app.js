@@ -59,8 +59,17 @@ async function fullSync() {
     UI.showMessage("Sincronización completa.");
 }
 
+function updateFavicon() {
+    const s = getComputedStyle(document.documentElement);
+    const bg = s.getPropertyValue('--bg').trim();
+    const accent = s.getPropertyValue('--accent').trim();
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='${bg}'/><text x='16' y='24' text-anchor='middle' font-size='22' font-weight='700' font-family='sans-serif' fill='${accent}'>M</text></svg>`;
+    document.querySelector("link[rel='icon']").href = `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
 function init() {
     document.documentElement.dataset.theme = State.theme;
+    updateFavicon();
     State.migrateHistory();
     UI.updateBank();
     UI.renderHistory();
@@ -282,6 +291,7 @@ document.querySelectorAll('#themeMenu .menu-btn').forEach(btn => {
         const theme = btn.dataset.theme;
         State.saveTheme(theme);
         document.documentElement.dataset.theme = theme;
+        updateFavicon();
         document.getElementById('themeMenu').classList.add('hidden');
     });
 });
