@@ -38,29 +38,56 @@ Cada sesión que registra horas intenta enviarse a Google Sheets automáticament
 
 Usá los botones del pie de página para exportar un backup JSON o restaurar desde uno anterior. El historial se guarda en el navegador — si cambiás de dispositivo, exportá e importá.
 
-## Google Sheets
+## Setup (Google Sheets)
 
-### Configuración
+Guía para conectar Modulime a un Google Sheet. Es un **sheet por persona**: cada usuario tiene su propio spreadsheet con su historial, su resumen y su tarifa.
 
-1. Creá un Google Sheet con una hoja llamada **Registros** (si no existe, el script la crea automáticamente).
-2. Andá a **Extensiones → Apps Script** y pegá el contenido de [`docs/sheets.gs`](docs/sheets.gs).
-3. Desplegalo como **aplicación web** (Deploy → New deployment → Web app):
-   - **Execute as:** Me
-   - **Who has access:** Anyone
-4. Copiá la URL que te da y pegala en Modulime: botón **Config Sheet URL**.
+### 1. Crear el spreadsheet y las hojas
 
-Cada vez que Modulime registre horas, el script va a:
-- Buscar si ya existe una fila con la fecha de hoy (en toda la planilla, no solo las últimas filas).
-- Verificar que el ID de la sesión no haya sido procesado antes (evita duplicados).
-- Si la fecha ya existe: suma las horas y **concatena** la descripción y proyecto (no los pisa).
-- Si no: crea una fila nueva.
+1. Entrá a [Google Sheets](https://sheets.google.com) y creá un spreadsheet nuevo.
+2. Creá tres hojas (pestañas) con estos encabezados exactos:
 
-Las columnas son: `A = Fecha`, `B = Horas`, `C = Descripción`, `D = Proyecto`, `E = ID`.
+   | Hoja | Encabezados (primera fila) | Para qué |
+   |---|---|---|
+   | **Registros** | `Fecha, Horas, Descripción, Proyecto, ID` | una fila por sesión |
+   | **Resumen** | `Mes, Horas totales, A cobrar` | totales que ve tu jefe |
+   | **Config** | `clave, valor` | estado interno (tarifa y banco) |
 
-### Limitaciones
+> Si no las creás, el webhook las crea la primera vez que recibe datos, pero conviene crearlas desde el inicio para poder publicarlas (paso 3).
 
-- El envío usa `no-cors`, por lo que Modulime no puede confirmar si Google Sheets recibió los datos — las entradas enviadas se marcan como sincronizadas asumiendo que llegaron.
-- Si trabajás en varias sesiones en un mismo día, las descripciones y proyectos se concatenan con saltos de línea. Si repetís exactamente la misma descripción, no se duplica.
+### 2. Desplegar el webhook (Apps Script)
+
+1. En el spreadsheet: **Extensiones → Apps Script**.
+2. Borrá el código de ejemplo y pegá el contenido de [`docs/sheets.gs`](docs/sheets.gs).
+3. Desplegá como aplicación web: **Desplegar → Nueva implementación → Aplicación web**.
+   - **Ejecutar como:** Yo
+   - **Quién tiene acceso:** Cualquier persona
+4. Copiá la URL de la aplicación web. Esa es la **webhook URL**.
+
+### 3. Publicar los CSV
+
+Modulime lee los datos desde dos CSVs publicados (uno por hoja):
+
+1. **Archivo → Compartir → Publicar en la web**.
+2. En "Enlace", elegí la hoja **"Registros"** y el formato **Valores separados por comas (.csv)** → **Publicar** → copiá la URL.
+3. Repetí para la hoja **"Config"** → copiá la segunda URL.
+
+> Publicar el spreadsheet entero no sirve: devuelve una página web, no un CSV. Hay que publicar **cada hoja por separado**.
+
+### 4. Configurar Modulime
+
+1. Abrí Modulime (GitHub Pages o local).
+2. Botón **Config Sheet URL** → pegá la webhook URL (paso 2).
+3. Botón **Config CSV Registros** → pegá la URL del CSV de "Registros" (paso 3).
+4. Botón **Config CSV Config** → pegá la URL del CSV de "Config" (paso 3).
+5. Botón **Configurar tarifa** → ingresá tu coste por hora en USD.
+
+### Cómo funciona después
+
+- Al **terminar una sesión**, Modulime escribe la fila en "Registros" y actualiza "Resumen" (suma las horas del mes y calcula "A cobrar").
+- Modulime relee el CSV de "Registros" para **confirmar** que la sesión llegó (puede tardar unos minutos por el retraso de publicación).
+- La **tarifa** y el **banco de minutos** se guardan en "Config" y se restauran al cambiar de dispositivo.
+- El **jefe** abre el spreadsheet por su link normal y ve "Registros" y "Resumen" como siempre.
 
 ## Estructura del proyecto
 
