@@ -60,6 +60,7 @@ export const State = {
     csvURL: safeGet('googleSheetCsvURL') || "",
     configCsvURL: safeGet('googleConfigCsvURL') || "",
     hourlyRate: safeFloat('hourlyRate', 0),
+    theme: safeGet('modulimeTheme') || 'gruvbox',
 
     saveSession() { safeSet('currentSession', JSON.stringify(this.currentSession)); },
     saveBank() { safeSet('workMinuteBank', Math.round(this.minuteBank * 100) / 100); },
@@ -110,6 +111,10 @@ export const State = {
     saveHourlyRate(rate) {
         this.hourlyRate = Math.round(rate * 100) / 100;
         safeSet('hourlyRate', this.hourlyRate);
+    },
+    saveTheme(theme) {
+        this.theme = theme;
+        safeSet('modulimeTheme', theme);
     },
     resetSession() {
         this.currentSession = { status: 'IDLE', startTime: null, accumulated: 0 };

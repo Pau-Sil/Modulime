@@ -59,6 +59,7 @@ async function fullSync() {
 }
 
 function init() {
+    document.documentElement.dataset.theme = State.theme;
     State.migrateHistory();
     UI.updateBank();
     UI.renderHistory();
@@ -277,11 +278,28 @@ document.getElementById('btnBackup').addEventListener('click', () => {
 });
 document.getElementById('btnSync').addEventListener('click', () => fullSync());
 
+document.getElementById('btnThemes').addEventListener('click', () => {
+    document.getElementById('themeMenu').classList.toggle('hidden');
+});
+document.querySelectorAll('#themeMenu .menu-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const theme = btn.dataset.theme;
+        State.saveTheme(theme);
+        document.documentElement.dataset.theme = theme;
+        document.getElementById('themeMenu').classList.add('hidden');
+    });
+});
+
 document.addEventListener('click', (e) => {
     const menu = document.getElementById('menu');
     const btnMenu = document.getElementById('btnMenu');
     if (!menu.classList.contains('hidden') && !menu.contains(e.target) && e.target !== btnMenu) {
         closeMenu();
+    }
+    const themeMenu = document.getElementById('themeMenu');
+    const btnThemes = document.getElementById('btnThemes');
+    if (!themeMenu.classList.contains('hidden') && !themeMenu.contains(e.target) && e.target !== btnThemes) {
+        themeMenu.classList.add('hidden');
     }
 });
 document.getElementById('btnConfigWebhook').addEventListener('click', () => Data.setupWebhook());

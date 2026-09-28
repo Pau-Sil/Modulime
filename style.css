@@ -10,6 +10,30 @@
     --border: rgba(235, 219, 178, 0.1);
 }
 
+:root[data-theme="catppuccin"] {
+    --bg: #1e1e2e;
+    --bg-surface: #181825;
+    --fg: #cdd6f4;
+    --accent: #f9e2af;
+    --warn: #fab387;
+    --danger: #f38ba8;
+    --muted: #a6adc8;
+    --success: #a6e3a1;
+    --border: rgba(205, 214, 244, 0.1);
+}
+
+:root[data-theme="tokyonight"] {
+    --bg: #1a1b26;
+    --bg-surface: #16161e;
+    --fg: #c0caf5;
+    --accent: #e0af68;
+    --warn: #ff9e64;
+    --danger: #f7768e;
+    --muted: #565f89;
+    --success: #9ece6a;
+    --border: rgba(192, 202, 245, 0.1);
+}
+
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
@@ -634,4 +658,10 @@ tr:hover .delete-btn {
 
 .conflict-table .conflict-diff td {
     background: rgba(217, 115, 53, 0.12);
+}
+
+.theme-menu {
+    left: auto;
+    right: 0.75rem;
+    min-width: 150px;
 }
