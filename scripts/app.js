@@ -320,4 +320,61 @@ document.getElementById('btnReset').addEventListener('click', async () => {
     }
 });
 
+function isCurrentMonth(iso) {
+    const d = new Date(iso);
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+}
+
+const historyBody = document.querySelector('#historyTable tbody');
+
+historyBody.addEventListener('focusout', (e) => {
+    const cell = e.target.closest('.editable');
+    if (!cell) return;
+    const row = cell.closest('tr');
+    const id = row.dataset.id;
+    const value = cell.textContent.trim();
+    if (value === cell.dataset.original) return;
+
+    const entry = State.sessionHistory.find(x => x.id === id);
+    if (!entry) return;
+
+    const colIndex = cell.cellIndex;
+    if (colIndex === 2) entry.desc = value;
+    else if (colIndex === 3) entry.project = value;
+    State.saveHistory();
+
+    if (State.webhookURL) {
+        Data.postEntry({
+            id: entry.id,
+            description: entry.desc,
+            project: entry.project
+        }, 'edit').catch(() => {});
+    }
+    UI.renderHistory();
+});
+
+historyBody.addEventListener('click', (e) => {
+    const btn = e.target.closest('.delete-btn');
+    if (!btn) return;
+    const row = btn.closest('tr');
+    const id = row.dataset.id;
+    const entry = State.sessionHistory.find(x => x.id === id);
+    if (!entry) return;
+
+    if (!isCurrentMonth(entry.date)) {
+        alert("Solo se puede borrar sesiones del mes vigente.");
+        return;
+    }
+    if (!confirm("¿Borrar esta sesión?")) return;
+    if (!confirm("⚠️ Confirmación final: se borrará de acá y de la nube.")) return;
+
+    if (State.webhookURL) {
+        Data.postEntry({ id: entry.id }, 'delete').catch(() => {});
+    }
+    State.sessionHistory = State.sessionHistory.filter(x => x.id !== id);
+    State.saveHistory();
+    UI.renderHistory();
+});
+
 init();

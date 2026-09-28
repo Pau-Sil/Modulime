@@ -74,13 +74,17 @@ export const UI = {
 
         validLogs.slice(0, 10).forEach(log => {
             const dateStr = new Date(log.date).toLocaleDateString('es-AR');
+            const desc = this.escapeHtml(log.desc);
+            const project = this.escapeHtml(log.project || '-');
             const row = document.createElement('tr');
+            row.dataset.id = log.id;
             if (!log.synced) row.classList.add('unsynced');
             row.innerHTML = `
                 <td>${dateStr}</td>
                 <td>${log.hoursBilled} hs</td>
-                <td>${this.escapeHtml(log.desc)}</td>
-                <td>${this.escapeHtml(log.project || '-')}</td>
+                <td class="editable" contenteditable="true" data-original="${desc}">${desc}</td>
+                <td class="editable" contenteditable="true" data-original="${project}">${project}</td>
+                <td class="delete-cell"><button class="delete-btn" title="Borrar">X</button></td>
             `;
             this.elements.historyTableBody.appendChild(row);
         });
