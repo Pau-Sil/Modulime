@@ -57,6 +57,9 @@ export const State = {
         accumulated: 0
     }),
     webhookURL: safeGet('googleWebhookURL') || "",
+    csvURL: safeGet('googleSheetCsvURL') || "",
+    configCsvURL: safeGet('googleConfigCsvURL') || "",
+    hourlyRate: safeFloat('hourlyRate', 0),
 
     saveSession() { safeSet('currentSession', JSON.stringify(this.currentSession)); },
     saveBank() { safeSet('workMinuteBank', Math.round(this.minuteBank * 100) / 100); },
@@ -95,6 +98,18 @@ export const State = {
     saveWebhook(url) {
         this.webhookURL = url;
         safeSet('googleWebhookURL', url);
+    },
+    saveCsvUrl(url) {
+        this.csvURL = url;
+        safeSet('googleSheetCsvURL', url);
+    },
+    saveConfigCsvUrl(url) {
+        this.configCsvURL = url;
+        safeSet('googleConfigCsvURL', url);
+    },
+    saveHourlyRate(rate) {
+        this.hourlyRate = Math.round(rate * 100) / 100;
+        safeSet('hourlyRate', this.hourlyRate);
     },
     resetSession() {
         this.currentSession = { status: 'IDLE', startTime: null, accumulated: 0 };

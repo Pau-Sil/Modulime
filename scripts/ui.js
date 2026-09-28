@@ -210,5 +210,55 @@ export const UI = {
             dialog.addEventListener('click', onOverlay);
             document.addEventListener('keydown', onKey);
         });
+    },
+
+    showConflict(local, remote) {
+        return new Promise(resolve => {
+            const dateKey = iso => String(iso || '').slice(0, 10);
+            const msg = [
+                `Fecha — Local: ${dateKey(local.date)} | Nube: ${dateKey(remote.date)}`,
+                `Horas — Local: ${local.hoursBilled} | Nube: ${remote.hours}`,
+                `Descripción — Local: ${local.desc || ''}`,
+                `Descripción — Nube: ${remote.description || ''}`,
+                `Proyecto — Local: ${local.project || ''}`,
+                `Proyecto — Nube: ${remote.project || ''}`
+            ].join('\n');
+
+            document.getElementById('dialogMessage').textContent = msg;
+            const okBtn = document.getElementById('btnDialogOk');
+            const cancelBtn = document.getElementById('btnDialogCancel');
+            const dialog = document.getElementById('dialogModal');
+
+            okBtn.textContent = 'Conservar local';
+            okBtn.className = 'btn btn-primary';
+            cancelBtn.textContent = 'Conservar nube';
+            cancelBtn.classList.remove('hidden');
+            dialog.classList.remove('hidden');
+            okBtn.focus();
+
+            function close(result) {
+                dialog.classList.add('hidden');
+                okBtn.removeEventListener('click', onOk);
+                cancelBtn.removeEventListener('click', onCancel);
+                document.removeEventListener('keydown', onKey);
+                dialog.removeEventListener('click', onOverlay);
+                resolve(result);
+            }
+
+            function onOk() { close(true); }
+            function onCancel() { close(false); }
+            function onOverlay(e) {
+                if (e.target === e.currentTarget) close(false);
+            }
+            function onKey(e) {
+                if (e.key === 'Escape') { e.preventDefault(); close(false); }
+                if (e.key === 'Enter') { e.preventDefault(); close(true); }
+            }
+
+            okBtn.addEventListener('click', onOk);
+            cancelBtn.addEventListener('click', onCancel);
+            dialog.addEventListener('click', onOverlay);
+            document.addEventListener('keydown', onKey);
+        });
     }
 };

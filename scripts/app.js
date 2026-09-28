@@ -3,6 +3,33 @@ import { Timer } from './timer.js';
 import { UI } from './ui.js';
 import { Data } from './data.js';
 
+async function resolveConflicts(conflicts) {
+    for (const conflict of conflicts) {
+        const { local, remote } = conflict;
+        const keepLocal = await UI.showConflict(local, remote);
+        if (keepLocal) {
+            Data.postEntry({
+                id: local.id,
+                date: Data.formatLocalDate(local.date),
+                hours: local.hoursBilled,
+                description: local.desc,
+                project: local.project
+            }, 'edit').then(() => {
+                State.markEntrySynced(local.id);
+                UI.renderHistory();
+            });
+        } else {
+            local.date = remote.date;
+            local.hoursBilled = remote.hours;
+            local.desc = remote.description;
+            local.project = remote.project;
+            local.synced = true;
+            State.saveHistory();
+            UI.renderHistory();
+        }
+    }
+}
+
 function init() {
     State.migrateHistory();
     UI.updateBank();
@@ -27,6 +54,22 @@ function init() {
         } else {
             UI.updateTimerDisplay(Timer.getLiveMs());
         }
+    }
+
+    if (State.csvURL) {
+        Data.reconcile().then(({ conflicts }) => resolveConflicts(conflicts));
+    }
+    if (State.configCsvURL) {
+        Data.fetchConfig().then(config => {
+            if (config.hourlyRate !== undefined && State.hourlyRate === 0) {
+                State.saveHourlyRate(parseFloat(config.hourlyRate) || 0);
+            }
+            if (config.minuteBank !== undefined && State.minuteBank === 0) {
+                State.minuteBank = Math.round((parseFloat(config.minuteBank) || 0) * 100) / 100;
+                State.saveBank();
+                UI.updateBank();
+            }
+        });
     }
 }
 
@@ -175,14 +218,27 @@ document.getElementById('btnConfirmFinish').addEventListener('click', () => {
         UI.showMessage(`¡Éxito! Registraste ${hoursToLog} hs. Saldo en banco: ${newBank.toFixed(0)} min`);
         Data.sendToSheet(hoursToLog, desc, project, entryId).then(() => {
             UI.renderHistory();
+            if (State.csvURL) {
+                Data.pollUntilSynced(entryId).then(synced => {
+                    if (synced) UI.renderHistory();
+                });
+            }
         });
     } else {
         UI.showMessage(`Guardado. Nuevo banco: ${newBank.toFixed(0)} min`);
     }
+
+    if (State.webhookURL) {
+        Data.postConfig();
+    }
 });
 
 document.getElementById('btnConfigWebhook').addEventListener('click', () => Data.setupWebhook());
+document.getElementById('btnConfigCsv').addEventListener('click', () => Data.setupCsvUrl());
+document.getElementById('btnConfigConfigCsv').addEventListener('click', () => Data.setupConfigCsvUrl());
 document.getElementById('btnSyncRetry').addEventListener('click', () => Data.syncPending());
+document.getElementById('btnVerifySync').addEventListener('click', () => Data.reconcile().then(({ conflicts }) => resolveConflicts(conflicts)));
+document.getElementById('btnConfigRate').addEventListener('click', () => Data.setupHourlyRate());
 document.getElementById('btnExportJson').addEventListener('click', () => Data.exportJson());
 
 document.getElementById('btnImportJson').addEventListener('click', () => {
