@@ -63,7 +63,7 @@ export const UI = {
     },
 
     updateBank() {
-        this.elements.bankDisplay.textContent = Math.round(State.minuteBank);
+        this.elements.bankDisplay.textContent = State.minuteBank.toFixed(1);
         this.elements.rateDisplay.textContent = `$${State.hourlyRate}/h`;
     },
     showMessage(msg) { this.elements.message.textContent = msg; },
