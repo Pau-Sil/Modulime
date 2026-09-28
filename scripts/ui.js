@@ -76,7 +76,7 @@ export const UI = {
         this.elements.historyTableBody.innerHTML = '';
         const validLogs = State.sessionHistory.filter(log => log.hoursBilled > 0);
 
-        validLogs.slice(0, 10).forEach(log => {
+        validLogs.forEach(log => {
             const dateStr = new Date(log.date).toLocaleDateString('es-AR');
             const desc = this.escapeHtml(log.desc);
             const project = this.escapeHtml(log.project || '-');
