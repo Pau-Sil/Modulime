@@ -326,7 +326,7 @@ document.getElementById('importFile').addEventListener('change', (e) => {
 });
 
 document.getElementById('btnReset').addEventListener('click', () => {
-    const ok = confirm("⚠️ ¿Borrar TODO el historial y el banco local?");
+    const ok = confirm("¿Borrar TODO el historial y el banco local?");
     if (ok) {
         Timer.stop();
         State.hardReset();
@@ -345,6 +345,15 @@ function isCurrentMonth(iso) {
 }
 
 const historyBody = document.querySelector('#historyTable tbody');
+
+historyBody.addEventListener('keydown', (e) => {
+    const cell = e.target.closest('.editable');
+    if (!cell) return;
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        cell.blur();
+    }
+});
 
 historyBody.addEventListener('focusout', (e) => {
     const cell = e.target.closest('.editable');
@@ -370,6 +379,7 @@ historyBody.addEventListener('focusout', (e) => {
         }, 'edit').catch(() => {});
     }
     UI.renderHistory();
+    UI.showMessage("Entrada actualizada.");
 });
 
 historyBody.addEventListener('click', (e) => {
@@ -385,7 +395,7 @@ historyBody.addEventListener('click', (e) => {
         return;
     }
     if (!confirm("¿Borrar esta sesión?")) return;
-    if (!confirm("⚠️ Confirmación final: se borrará de acá y de la nube.")) return;
+    if (!confirm("Confirmación final: se borrará de acá y de la nube.")) return;
 
     if (State.webhookURL) {
         Data.postEntry({ id: entry.id }, 'delete').catch(() => {});
