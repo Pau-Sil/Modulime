@@ -32,11 +32,11 @@ Cada vez que se registran horas, se envía la información a un Google Sheet con
 
 ### Sincronización
 
-Cada sesión que registra horas intenta enviarse a Google Sheets automáticamente. Si la conexión falla, la entrada queda marcada como **pendiente** (borde naranja en la tabla del historial). Usá el botón **Reintentar sync** para reenviar todas las pendientes.
+Cada sesión que registra horas se envía automáticamente a la nube. Si la conexión falla, la entrada queda marcada como **pendiente** (borde naranja en la tabla del historial). El botón **Sync** (en la barra superior) reconcilia el historial local con la nube, reenvía las pendientes y resuelve conflictos.
 
 ### Backup y restauración
 
-Usá los botones del pie de página para exportar un backup JSON o restaurar desde uno anterior. El historial se guarda en el navegador — si cambiás de dispositivo, exportá e importá.
+Desde el menú **Backup** podés exportar un backup JSON o restaurar desde uno anterior. El historial, la tarifa y el banco también se sincronizan con la nube, así que al cambiar de dispositivo se restauran con **Sync**.
 
 ## Setup (Google Sheets)
 
