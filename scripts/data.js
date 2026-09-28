@@ -199,11 +199,11 @@ export const Data = {
 
     sendToSheet(hours, desc, project, entryId) {
         if (!State.webhookURL) {
-            UI.showMessage("No hay webhook configurado. Los datos solo se guardaron localmente.");
+            UI.showMessage("No hay nube configurada. Guardado solo localmente.");
             return Promise.resolve();
         }
 
-        UI.showMessage("Enviando datos a Google Sheets...");
+        UI.showMessage("Enviando datos a la nube...");
 
         return this.postEntry({
             id: entryId,
@@ -218,17 +218,17 @@ export const Data = {
 
     syncPending() {
         if (!State.webhookURL) {
-            UI.showMessage("Configurá primero la URL de Google Sheets.");
+            UI.showMessage("Configurá primero la nube (Nube → Sheet).");
             return;
         }
 
         const pending = State.sessionHistory.filter(e => e.hoursBilled > 0 && !e.synced);
         if (pending.length === 0) {
-            UI.showMessage("No hay entradas pendientes de sincronización.");
+            UI.showMessage("No hay entradas pendientes.");
             return;
         }
 
-        UI.showMessage(`Reintentando ${pending.length} entrada(s) pendiente(s)...`);
+        UI.showMessage(`Sincronizando ${pending.length} entrada(s)...`);
 
         let chain = Promise.resolve();
         pending.forEach(entry => {

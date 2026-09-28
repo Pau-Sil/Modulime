@@ -231,20 +231,20 @@ document.getElementById('btnConfirmFinish').addEventListener('click', () => {
     UI.updateTimerDisplay(0);
 
     if (hoursToLog > 0) {
-        UI.showMessage(`¡Éxito! Registraste ${hoursToLog} hs. Saldo en banco: ${newBank.toFixed(0)} min`);
+        UI.showMessage(`Registraste ${hoursToLog} hs.`);
         Data.sendToSheet(hoursToLog, desc, project, entryId).then(() => {
             UI.renderHistory();
             if (State.csvURL) {
                 Data.pollUntilSynced(entryId).then(synced => {
                     UI.renderHistory();
                     UI.showMessage(synced
-                        ? "Sincronizado con Google Sheets."
-                        : "Enviado, pendiente de confirmación.");
+                        ? "Sincronizado."
+                        : "Pendiente de confirmación.");
                 });
             }
         });
     } else {
-        UI.showMessage(`Guardado. Nuevo banco: ${newBank.toFixed(0)} min`);
+        UI.showMessage("Guardado en banco.");
     }
 
     if (State.webhookURL) {
