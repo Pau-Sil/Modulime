@@ -377,4 +377,21 @@ historyBody.addEventListener('click', (e) => {
     UI.renderHistory();
 });
 
+document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    const modal = document.querySelector('.modal:not(.hidden)');
+    if (!modal) return;
+    const focusable = modal.querySelectorAll('button, input, textarea, select, [contenteditable="true"]');
+    if (focusable.length === 0) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+    }
+});
+
 init();

@@ -135,6 +135,7 @@ export const UI = {
         }
 
         this.elements.modal.classList.remove('hidden');
+        document.getElementById('btnConfirmFinish').focus();
     },
 
     closeModal() { this.elements.modal.classList.add('hidden'); },
