@@ -148,12 +148,22 @@ export const Data = {
 
     fetchCsvRecords() {
         if (!State.csvURL) return Promise.resolve([]);
-        return this.fetchPublishedCsv(State.csvURL).then(text => this.parseRecords(text));
+        return this.fetchPublishedCsv(State.csvURL)
+            .then(text => this.parseRecords(text))
+            .catch(err => {
+                UI.reportError("No se pudo leer el CSV de Registros.", err);
+                return [];
+            });
     },
 
     fetchConfig() {
         if (!State.configCsvURL) return Promise.resolve({});
-        return this.fetchPublishedCsv(State.configCsvURL).then(text => this.parseConfigRows(text));
+        return this.fetchPublishedCsv(State.configCsvURL)
+            .then(text => this.parseConfigRows(text))
+            .catch(err => {
+                UI.reportError("No se pudo leer el CSV de Config.", err);
+                return {};
+            });
     },
 
     postEntry(entry, action) {
@@ -199,8 +209,8 @@ export const Data = {
             hours: hours,
             description: desc,
             project: project
-        }, 'create').catch(() => {
-            UI.showMessage("Error de conexión al enviar. Queda pendiente de sincronización.");
+        }, 'create').catch(err => {
+            UI.reportError("Error de conexión al enviar. Queda pendiente de sincronización.", err);
         });
     },
 
@@ -229,7 +239,8 @@ export const Data = {
                     project: entry.project
                 }, 'create').then(() => {
                     State.markEntrySynced(entry.id);
-                }).catch(() => {
+                }).catch(err => {
+                    UI.reportError("Error al reenviar una entrada.", err);
                 })
             );
         });

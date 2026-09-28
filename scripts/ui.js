@@ -67,6 +67,10 @@ export const UI = {
         this.elements.rateDisplay.textContent = `$${State.hourlyRate}/h`;
     },
     showMessage(msg) { this.elements.message.textContent = msg; },
+    reportError(msg, err) {
+        console.error(msg, err || '');
+        alert(msg);
+    },
 
     renderHistory() {
         this.elements.historyTableBody.innerHTML = '';

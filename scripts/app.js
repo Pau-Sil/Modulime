@@ -43,7 +43,7 @@ async function restoreConfig() {
         }
         UI.updateBank();
     } catch (err) {
-        console.error("Error al leer el CSV de Config:", err);
+        UI.reportError("No se pudo leer el CSV de Config.", err);
     }
 }
 
