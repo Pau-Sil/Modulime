@@ -1,6 +1,8 @@
 import { State } from './state.js';
 import { UI } from './ui.js';
 
+const SYNC_GRACE_MS = 10 * 60 * 1000;
+
 export const Data = {
     setupWebhook() {
         const current = State.webhookURL;
@@ -271,7 +273,8 @@ export const Data = {
                         hoursBilled: remote.hours,
                         desc: remote.description,
                         project: remote.project,
-                        synced: true
+                        synced: true,
+                        lastSynced: Date.now()
                     });
                 } else {
                     const localDateKey = String(local.date || '').slice(0, 10);
@@ -284,12 +287,16 @@ export const Data = {
                         conflicts.push({ local, remote });
                     } else {
                         local.synced = true;
+                        local.lastSynced = Date.now();
                     }
                 }
             });
             State.sessionHistory.forEach(local => {
                 if (local.synced && local.hoursBilled > 0 && !remoteIds.has(local.id)) {
-                    local.synced = false;
+                    const lastSynced = local.lastSynced || 0;
+                    if (Date.now() - lastSynced >= SYNC_GRACE_MS) {
+                        local.synced = false;
+                    }
                 }
             });
             State.saveHistory();
@@ -377,6 +384,7 @@ export const Data = {
 
                 const history = (data.history || []).map(entry => {
                     if (!entry || typeof entry !== 'object') throw new Error('Formato inválido');
+                    const synced = typeof entry.synced === 'boolean' ? entry.synced : true;
                     return {
                         id: entry.id || entry.date || new Date().toISOString(),
                         date: entry.date || new Date().toISOString(),
@@ -384,7 +392,8 @@ export const Data = {
                         hoursBilled: typeof entry.hoursBilled === 'number' ? entry.hoursBilled : 0,
                         desc: entry.desc || '',
                         project: entry.project || '',
-                        synced: typeof entry.synced === 'boolean' ? entry.synced : true
+                        synced: synced,
+                        lastSynced: synced ? Date.now() : 0
                     };
                 });
 

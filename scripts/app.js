@@ -24,6 +24,7 @@ async function resolveConflicts(conflicts) {
             local.desc = remote.description;
             local.project = remote.project;
             local.synced = true;
+            local.lastSynced = Date.now();
             State.saveHistory();
             UI.renderHistory();
         }
@@ -70,11 +71,6 @@ function init() {
         localStorage.removeItem('__modulime_test__');
     } catch {
         UI.showMessage("Atención: el almacenamiento local no está disponible. Los datos no se guardarán entre sesiones.");
-    }
-
-    const pendingCount = State.getUnsyncedCount();
-    if (pendingCount > 0 && State.webhookURL) {
-        UI.showMessage(`Hay ${pendingCount} entrada(s) sin sincronizar. Usá "Reintentar sync" para enviarlas.`);
     }
 
     if (State.currentSession.status !== 'IDLE') {

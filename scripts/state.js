@@ -77,6 +77,10 @@ export const State = {
                 changed = true;
                 entry.synced = true;
             }
+            if (entry.lastSynced === undefined) {
+                changed = true;
+                entry.lastSynced = entry.synced ? Date.now() : 0;
+            }
             return entry;
         });
         if (changed) this.saveHistory();
@@ -86,6 +90,7 @@ export const State = {
         const entry = this.sessionHistory.find(e => e.id === id);
         if (entry) {
             entry.synced = true;
+            entry.lastSynced = Date.now();
             this.saveHistory();
         }
     },
