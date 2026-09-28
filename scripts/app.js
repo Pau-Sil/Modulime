@@ -180,7 +180,8 @@ document.addEventListener('keydown', (e) => {
     }
 
     const tag = document.activeElement ? document.activeElement.tagName : '';
-    const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+    const isEditable = document.activeElement ? document.activeElement.isContentEditable : false;
+    const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || isEditable;
 
     if (e.key === ' ' && !modalOpen && !isInput) {
         e.preventDefault();
