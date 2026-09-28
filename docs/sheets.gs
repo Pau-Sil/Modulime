@@ -149,7 +149,7 @@ function recalcularMes(fecha) {
   var resumenLastRow = resumen.getLastRow();
   var found = -1;
   if (resumenLastRow >= 2) {
-    var meses = resumen.getRange(2, 1, resumenLastRow - 1, 1).getValues();
+    var meses = resumen.getRange(2, 1, resumenLastRow - 1, 1).getDisplayValues();
     for (var j = 0; j < meses.length; j++) {
       if (String(meses[j][0]) === mes) {
         found = j + 2;
@@ -163,6 +163,7 @@ function recalcularMes(fecha) {
     resumen.getRange(found, 3).setValue(aCobrar);
   } else {
     resumen.appendRow([mes, total, aCobrar]);
+    resumen.getRange(resumen.getLastRow(), 1).setNumberFormat('@');
   }
 }
 
