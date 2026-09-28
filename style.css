@@ -604,3 +604,33 @@ tr:hover .delete-btn {
 .delete-btn:hover {
     background: rgba(207, 77, 68, 0.15);
 }
+
+/* Tabla de conflicto (local vs nube) */
+.conflict-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+
+.conflict-table th,
+.conflict-table td {
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.conflict-table thead th {
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.7rem;
+}
+
+.conflict-table td {
+    word-break: break-word;
+}
+
+.conflict-table .conflict-diff td {
+    background: rgba(217, 115, 53, 0.12);
+}

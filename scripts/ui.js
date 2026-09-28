@@ -150,16 +150,31 @@ export const UI = {
     showConflict(local, remote) {
         return new Promise(resolve => {
             const dateKey = iso => String(iso || '').slice(0, 10);
-            const msg = [
-                `Fecha — Local: ${dateKey(local.date)} | Nube: ${dateKey(remote.date)}`,
-                `Horas — Local: ${local.hoursBilled} | Nube: ${remote.hours}`,
-                `Descripción — Local: ${local.desc || ''}`,
-                `Descripción — Nube: ${remote.description || ''}`,
-                `Proyecto — Local: ${local.project || ''}`,
-                `Proyecto — Nube: ${remote.project || ''}`
-            ].join('\n');
+            const rows = [
+                { label: 'Fecha', l: dateKey(local.date), r: dateKey(remote.date) },
+                { label: 'Horas', l: local.hoursBilled, r: remote.hours },
+                { label: 'Descripción', l: local.desc || '', r: remote.description || '' },
+                { label: 'Proyecto', l: local.project || '', r: remote.project || '' }
+            ];
 
-            document.getElementById('dialogMessage').textContent = msg;
+            const body = rows.map(row => {
+                const diff = String(row.l) !== String(row.r);
+                return `<tr${diff ? ' class="conflict-diff"' : ''}>
+                    <th>${this.escapeHtml(row.label)}</th>
+                    <td>${this.escapeHtml(String(row.l))}</td>
+                    <td>${this.escapeHtml(String(row.r))}</td>
+                </tr>`;
+            }).join('');
+
+            document.getElementById('dialogMessage').innerHTML = `
+                <table class="conflict-table">
+                    <thead>
+                        <tr><th></th><th>Local</th><th>Nube</th></tr>
+                    </thead>
+                    <tbody>${body}</tbody>
+                </table>
+            `;
+
             const okBtn = document.getElementById('btnDialogOk');
             const cancelBtn = document.getElementById('btnDialogCancel');
             const dialog = document.getElementById('dialogModal');
