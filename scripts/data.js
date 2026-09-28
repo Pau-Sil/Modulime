@@ -199,10 +199,7 @@ export const Data = {
             hours: hours,
             description: desc,
             project: project
-        }, 'create').then(() => {
-            if (entryId) State.markEntrySynced(entryId);
-            UI.showMessage("Datos enviados (no se puede confirmar recepción con Google Sheets).");
-        }).catch(() => {
+        }, 'create').catch(() => {
             UI.showMessage("Error de conexión al enviar. Queda pendiente de sincronización.");
         });
     },
@@ -252,6 +249,7 @@ export const Data = {
         if (!State.csvURL) return Promise.resolve({ conflicts: [] });
         return this.fetchCsvRecords().then(remoteEntries => {
             const conflicts = [];
+            const remoteIds = new Set(remoteEntries.map(r => r.id));
             remoteEntries.forEach(remote => {
                 const local = State.sessionHistory.find(e => e.id === remote.id);
                 if (!local) {
@@ -276,6 +274,11 @@ export const Data = {
                     } else {
                         local.synced = true;
                     }
+                }
+            });
+            State.sessionHistory.forEach(local => {
+                if (local.synced && local.hoursBilled > 0 && !remoteIds.has(local.id)) {
+                    local.synced = false;
                 }
             });
             State.saveHistory();

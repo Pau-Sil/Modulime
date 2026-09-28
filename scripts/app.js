@@ -220,7 +220,10 @@ document.getElementById('btnConfirmFinish').addEventListener('click', () => {
             UI.renderHistory();
             if (State.csvURL) {
                 Data.pollUntilSynced(entryId).then(synced => {
-                    if (synced) UI.renderHistory();
+                    UI.renderHistory();
+                    UI.showMessage(synced
+                        ? "Sincronizado con Google Sheets."
+                        : "Enviado, pendiente de confirmación.");
                 });
             }
         });

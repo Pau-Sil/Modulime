@@ -93,7 +93,7 @@ export const State = {
         return this.sessionHistory.filter(e => e.hoursBilled > 0 && !e.synced).length;
     },
     newId() {
-        return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+        return Date.now().toString(36).padStart(9, '0') + Math.random().toString(36).slice(2, 8);
     },
     saveWebhook(url) {
         this.webhookURL = url;

@@ -34,7 +34,7 @@ function fechaHoy() {
 function fechaMes(fecha) {
   var parts = String(fecha || "").split("/");
   if (parts.length === 3) {
-    return parts[1] + "/" + parts[2];
+    return parts[2] + "-" + parts[1];
   }
   return null;
 }
@@ -134,10 +134,11 @@ function recalcularMes(fecha) {
   var total = 0;
   var lastRow = registros.getLastRow();
   if (lastRow >= 2) {
-    var rows = registros.getRange(2, 1, lastRow - 1, 2).getValues();
-    for (var i = 0; i < rows.length; i++) {
-      if (fechaMes(String(rows[i][0] || "")) === mes) {
-        total += Number(rows[i][1]) || 0;
+    var dates = registros.getRange(2, 1, lastRow - 1, 1).getDisplayValues();
+    var hours = registros.getRange(2, 2, lastRow - 1, 1).getValues();
+    for (var i = 0; i < dates.length; i++) {
+      if (fechaMes(String(dates[i][0] || "")) === mes) {
+        total += Number(hours[i][0]) || 0;
       }
     }
   }
@@ -165,6 +166,14 @@ function recalcularMes(fecha) {
   }
 }
 
+function sortRegistros() {
+  var sheet = getRegistrosSheet();
+  var lastRow = sheet.getLastRow();
+  if (lastRow >= 2) {
+    sheet.getRange(2, 1, lastRow - 1, 5).sort(5);
+  }
+}
+
 function createEntry(data) {
   var sheet = getRegistrosSheet();
   var fechaStr = data.date || fechaHoy();
@@ -174,6 +183,7 @@ function createEntry(data) {
   }
 
   sheet.appendRow([fechaStr, data.hours, data.description || "", data.project || "", data.id || ""]);
+  sortRegistros();
   recalcularMes(fechaStr);
   return ContentService.createTextOutput("Created");
 }
@@ -185,7 +195,7 @@ function editEntry(data) {
     return ContentService.createTextOutput("No encontrado");
   }
 
-  var oldDate = String(sheet.getRange(row, 1).getValue() || "");
+  var oldDate = String(sheet.getRange(row, 1).getDisplayValue() || "");
 
   if (data.date !== undefined) sheet.getRange(row, 1).setValue(data.date);
   if (data.hours !== undefined) sheet.getRange(row, 2).setValue(data.hours);
@@ -195,6 +205,7 @@ function editEntry(data) {
   var newDate = data.date !== undefined ? data.date : oldDate;
   recalcularMes(oldDate);
   if (newDate !== oldDate) recalcularMes(newDate);
+  if (data.date !== undefined) sortRegistros();
 
   return ContentService.createTextOutput("Updated");
 }
@@ -206,7 +217,7 @@ function deleteEntry(data) {
     return ContentService.createTextOutput("No encontrado");
   }
 
-  var oldDate = String(sheet.getRange(row, 1).getValue() || "");
+  var oldDate = String(sheet.getRange(row, 1).getDisplayValue() || "");
   sheet.deleteRow(row);
   recalcularMes(oldDate);
   return ContentService.createTextOutput("Deleted");
