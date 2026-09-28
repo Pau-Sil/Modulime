@@ -7,7 +7,7 @@ export const Data = {
         const url = prompt("Ingresa la URL de tu Web App de Google Apps Script:", current);
         if (url !== null) {
             State.saveWebhook(url.trim());
-            UI.showAlert("Webhook configurado correctamente.");
+            alert("Webhook configurado correctamente.");
         }
     },
 
@@ -16,7 +16,7 @@ export const Data = {
         const url = prompt("Ingresa la URL del CSV publicado de la hoja 'Registros':", current);
         if (url !== null) {
             State.saveCsvUrl(url.trim());
-            UI.showAlert("URL de CSV Registros configurada.");
+            alert("URL de CSV Registros configurada.");
         }
     },
 
@@ -25,7 +25,7 @@ export const Data = {
         const url = prompt("Ingresa la URL del CSV publicado de la hoja 'Config':", current);
         if (url !== null) {
             State.saveConfigCsvUrl(url.trim());
-            UI.showAlert("URL de CSV Config configurada.");
+            alert("URL de CSV Config configurada.");
         }
     },
 
@@ -39,9 +39,9 @@ export const Data = {
                 if (State.webhookURL) {
                     this.postConfig();
                 }
-                UI.showAlert("Coste por hora actualizado.");
+                alert("Coste por hora actualizado.");
             } else {
-                UI.showAlert("Valor inválido.");
+                alert("Valor inválido.");
             }
         }
     },

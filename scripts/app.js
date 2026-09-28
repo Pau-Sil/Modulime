@@ -120,8 +120,8 @@ document.getElementById('btnMain').addEventListener('click', () => {
     UI.updateControls();
 });
 
-document.getElementById('btnDiscard').addEventListener('click', async () => {
-    const ok = await UI.showConfirm(`¿Descartar ${Timer.formatMs(Timer.getLiveMs())} de esta sesión?`);
+document.getElementById('btnDiscard').addEventListener('click', () => {
+    const ok = confirm(`¿Descartar ${Timer.formatMs(Timer.getLiveMs())} de esta sesión?`);
     if (ok) {
         Timer.stop();
         State.resetSession();
@@ -295,20 +295,20 @@ document.getElementById('btnImportJson').addEventListener('click', () => {
 });
 
 document.getElementById('importFile').addEventListener('change', (e) => {
-    Data.importJson(e.target.files[0], async (success) => {
+    Data.importJson(e.target.files[0], (success) => {
         if (success) {
             UI.updateBank();
             UI.renderHistory();
-            await UI.showAlert("Datos restaurados correctamente.");
+            alert("Datos restaurados correctamente.");
         } else {
-            await UI.showAlert("Error: Archivo inválido.");
+            alert("Error: Archivo inválido.");
         }
         e.target.value = '';
     });
 });
 
-document.getElementById('btnReset').addEventListener('click', async () => {
-    const ok = await UI.showConfirm("⚠️ ¿Borrar TODO el historial y el banco local?");
+document.getElementById('btnReset').addEventListener('click', () => {
+    const ok = confirm("⚠️ ¿Borrar TODO el historial y el banco local?");
     if (ok) {
         Timer.stop();
         State.hardReset();
