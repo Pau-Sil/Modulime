@@ -2,12 +2,20 @@
 
 ## Project overview
 
-Modulime is a **single-page work-time tracker** — vanilla JS (ES modules), no framework, no build step, no npm, no tests, no linting, no CI. It counts fractional work minutes, accumulates them in a "minute bank", and bills whole hours to a Google Sheet via an Apps Script webhook. Deployed via GitHub Pages. UI text, comments, and most identifiers are in Spanish.
+Modulime is a **single-page work-time tracker** — vanilla JS (ES modules), no framework, no build step, no npm, no tests, no linting, no CI. It counts fractional work minutes, accumulates them in a "minute bank", and bills whole hours to a Google Sheet. Deployed via GitHub Pages. UI text, comments, and most identifiers are in Spanish.
+
+The sync is **bidirectional**: it writes to Google Sheets through an Apps Script webhook and reads back through two published CSVs (for confirmation, reconciliation and backup).
 
 ## Read this first
 
-- The app syncs to Google Sheets via a `no-cors` POST to an Apps Script webhook (`scripts/data.js` + `docs/sheets.gs`). There is no other backend.
-- All persistent state lives in `localStorage` under the four keys listed in the State section below. They are fixed strings — renaming them breaks existing user data.
+- **Writing** goes through a `no-cors` POST to an Apps Script webhook (`docs/sheets.gs`, deployed manually by the user).
+- **Reading** goes through two published CSVs (Google Sheets → Publish to web → `.csv`), one per sheet: "Registros" and "Config".
+- The spreadsheet has **three sheets**:
+  - `Registros` — one row per session: `Fecha, Horas, Descripción, Proyecto, ID`. The `ID` is the identity key.
+  - `Resumen` — `Mes, Horas totales, A cobrar` (the boss's monthly view). `A cobrar` is written as a **fixed value** so a later hourly-rate change doesn't rewrite past months.
+  - `Config` — `clave, valor` with `hourlyRate` and `minuteBank`.
+- The full setup (webhook + publishing the CSVs) is documented in the **README.md**, section "Setup (Google Sheets)".
+- All persistent state lives in `localStorage` under the keys listed in the State section. They are fixed strings — renaming them breaks existing user data.
 
 ## Agent guidelines
 
@@ -18,89 +26,96 @@ Modulime is a **single-page work-time tracker** — vanilla JS (ES modules), no 
 ## File structure
 
 ```
-index.html          — single HTML page (app, finish modal, generic dialog modal)
-style.css           — all styles (CSS custom properties, native nesting, Gruvbox palette)
-fonts.css           — JetBrains Mono @font-face (woff2 files in fonts/jetbrains-mono/)
+index.html          — single HTML page (top bar, menu, finish modal, conflict dialog)
+style.css           — all styles (CSS custom properties + themes, native nesting)
+fonts.css           — JetBrains Mono @font-face (woff2 in fonts/jetbrains-mono/)
 docs/
-  AGENTS.md         — pointer to this file
   revision.md       — historical code review (most findings already fixed)
-  issues.md         — open issues / improvement list
-  sheets.gs         — Google Apps Script webhook (deployed manually, see below)
+  issues.md         — maintained list of open issues / improvements (gitignored)
+  sheets.gs         — Google Apps Script webhook (deployed manually by the user)
 scripts/
-  app.js            — entry point, all event listeners, keyboard shortcuts
+  app.js            — entry point, event listeners, keyboard shortcuts, fullSync
   state.js          — localStorage-backed state, safe read/write helpers
   timer.js          — requestAnimationFrame timer (wall-clock, not tick-counting)
-  ui.js             — DOM reads/writes, dialogs (showAlert, showConfirm)
-  data.js           — Google Sheets webhook, JSON import/export
+  ui.js             — DOM reads/writes, renderHistory, showConflict, reportError
+  data.js           — webhook write, CSV read/parse, reconcile, polling, backup
 ```
 
 ## Architecture & data flow
 
 ### State (`state.js`)
 
-All persistent state lives in `localStorage` under four keys. All reads go through `safeGet()` / `safeJSON()` / `safeFloat()` wrappers that handle corrupt or missing data gracefully. All writes use `safeSet()` which silently ignores errors (storage full, unavailable, etc.). Storage availability is probed once at module load (`hasStorage`); if unavailable the app still runs but keeps everything in memory.
+All reads go through `safeGet()` / `safeJSON()` / `safeFloat()` wrappers that handle corrupt or missing data gracefully. All writes use `safeSet()` which silently ignores errors. Storage availability is probed once at module load (`hasStorage`); if unavailable the app keeps everything in memory.
 
 | Key | Shape |
 |---|---|
-| `currentSession` | `{ status: 'IDLE'|'RUNNING'|'PAUSED', startTime: number|null, accumulated: number }` |
+| `currentSession` | `{ status: 'IDLE'\|'RUNNING'\|'PAUSED', startTime: number\|null, accumulated: number }` |
 | `workMinuteBank` | `number` (fractional minutes, rounded to 2 decimals on every save) |
-| `sessionHistory` | `Array<{ id: string, date: ISO-string, duration: number, hoursBilled: number, desc: string, project: string, synced: boolean }>` |
-| `googleWebhookURL` | `string` |
+| `sessionHistory` | `Array<{ id, date, duration, hoursBilled, desc, project, synced, lastSynced }>` |
+| `googleWebhookURL` | `string` (write channel) |
+| `googleSheetCsvURL` | `string` (CSV of "Registros") |
+| `googleConfigCsvURL` | `string` (CSV of "Config") |
+| `hourlyRate` | `number` (USD per hour) |
+| `modulimeTheme` | `string` (`gruvbox` \| `catppuccin` \| `onedark` \| `githubdark`) |
 
-`State` is a plain exported object. There is **no reactivity** — callers must manually update the UI after mutating state. `migrateHistory()` adds `id` and `synced` fields to older entries on load (missing `synced` defaults to `true`). `getUnsyncedCount()` counts entries with `hoursBilled > 0` and `synced: false`.
+`State` is a plain exported object. There is **no reactivity** — callers must manually update the UI after mutating state. `migrateHistory()` adds `id`, `synced` and `lastSynced` to older entries on load. `markEntrySynced(id)` sets `synced: true` **and** `lastSynced: Date.now()`.
 
 ### Timer (`timer.js`)
 
-Uses a `requestAnimationFrame` loop that calls `getLiveMs()` on every frame. It does **not** count ticks — it computes elapsed time as `accumulated + (Date.now() - startTime)`. This keeps the timer accurate even when the tab sleeps or the browser throttles rAF.
+Uses a `requestAnimationFrame` loop calling `getLiveMs()` on every frame. It does **not** count ticks — elapsed time is `accumulated + (Date.now() - startTime)`, which survives tab sleep / rAF throttling.
 
 **Important**: `Timer.stop()` clears the rAF loop but does NOT modify `State.currentSession`. Only `app.js` mutates `State.currentSession`; `timer.js` only reads it.
 
 ### Session lifecycle (`app.js`)
 
 ```
-IDLE   -> [Iniciar] -> RUNNING
+IDLE    -> [Iniciar] -> RUNNING
 RUNNING -> [Pausar] -> PAUSED (accumulated += now - startTime; startTime = null)
-PAUSED -> [Reanudar] -> RUNNING (startTime = now)
-any    -> [Terminar] -> modal -> confirm -> reset to IDLE
-any    -> [Descartar] -> hard reset to IDLE (time discarded)
+PAUSED  -> [Reanudar] -> RUNNING (startTime = now)
+any     -> [Terminar] -> modal -> confirm -> reset to IDLE
+any     -> [Descartar] -> hard reset to IDLE (time discarded)
 ```
 
-On "Terminar":
-
-1. Timer stops; total ms read via `Timer.getLiveMs()`.
-2. Session minutes added to the existing bank, **rounded to 2 decimals** to prevent floating point drift.
-3. Floor to whole hours → remainder stays in bank (also rounded).
-4. If hours > 0: modal asks for description + project (datalist populated from history).
-5. If hours == 0: time goes to bank only, no description needed.
-6. On confirm: entry unshifted into `sessionHistory` (cap 100), webhook fires.
-7. Calculations are stored in `modal.dataset` (not a module-level variable) to survive re-renders.
+On "Terminar": session minutes are added to the bank (rounded to 2 decimals), floored to whole hours, remainder stays in bank. If `hoursBilled > 0` a modal asks for description + project. On confirm the entry is unshifted into `sessionHistory` (cap 100) and the webhook fires. Calculations live in `modal.dataset` to survive re-renders.
 
 ### UI (`ui.js`)
 
-All DOM elements are cached once in `UI.elements`. `updateControls()` toggles button visibility/text/classes based on `State.currentSession.status`. `updateTimerDisplay()` also sets `document.title` with a running/paused prefix. `showAlert(msg)` and `showConfirm(msg)` render styled modal dialogs (Promise-based; never native `alert`/`confirm`). `escapeHtml()` escapes `& < > " '` for safe insertion into both text and attribute contexts.
+- **Top bar** (3 sections): left = `Menu` (hamburger) + `Sync`; center = title; right = `Temas` (theme selector).
+- **Hamburger menu** (`#menu`): `Nube` (Sheet, Registros, Config, Tarifa), `Backup` (Export, Import), `Borrar datos`.
+- **Display**: the `.stats` box shows the minute bank, the hourly rate (`$X/h`) and a status message (`#message`, via `UI.showMessage`). It is informally called "Display".
+- **Dialogs are native** (`alert` / `confirm` / `prompt`). The only custom modals are `finishModal` (form) and `showConflict` (local-vs-cloud comparison). `showAlert`/`showConfirm` were removed.
+- `showConflict(local, remote)` renders a side-by-side table (Fecha / Horas / Descripción / Proyecto) highlighting differing fields, with "Conservar local" / "Conservar nube" buttons.
+- `reportError(msg, err)` logs to console and shows a native `alert`.
+- `renderHistory()` renders all billable entries (not just 10). Description/project cells are `contenteditable` (inline edit); each row has a delete button (visible on row hover).
+- `escapeHtml()` escapes `& < > " '`.
 
 ### Data (`data.js`)
 
-- `sendToSheet(hours, desc, project, entryId)` POSTs to the webhook and marks the entry synced when the fetch resolves. Includes `id` in the payload for idempotency on the sheet side.
-- `syncPending()` iterates unsynced entries (hoursBilled > 0, synced = false) and sends them sequentially, then re-renders history.
-- `sendToSheet()` uses `fetch` with `mode: 'no-cors'` — responses are opaque, so success can't actually be confirmed; entries are optimistically marked synced after the fetch resolves.
-- Export/Import uses JSON `{ app, version, bank, history, webhook }`; `version` is hardcoded `6.0`.
-- File download is a blob + temporary `<a>` element.
+- **Write**: `postEntry(entry, action)` POSTs to the webhook with `action` = `create` | `edit` | `delete` | `setConfig`. `postConfig()` sends `hourlyRate` + `minuteBank` with `setConfig`.
+- **Read**: `fetchPublishedCsv(url)`, `fetchCsvRecords()` (CSV of Registros) and `fetchConfig()` (CSV of Config). `parseRecords` / `parseConfigRows` parse the CSVs (header-based mapping, quotes-aware).
+- **`reconcile()`**: compares local vs remote by `id`:
+  - remote-only → add to local with `synced: true`.
+  - both and identical → mark `synced: true` + `lastSynced`.
+  - both and differing → push to `conflicts` (resolved by `showConflict`).
+  - local-only and `synced: true` and absent from CSV → mark `synced: false` **only after the grace period** (`SYNC_GRACE_MS` = 10 minutes), to distinguish publish-delay from a real deletion.
+- **Polling**: `pollUntilSynced(id)` / `pollUntilAbsent(id)` poll the CSV (30s interval, 12 attempts) to confirm create/delete.
+- **Backup**: `exportJson` / `importJson` use `{ app, version, bank, history, webhook }`, `version` hardcoded `6.0`.
 
 ### Sync model
 
 - Entries with `hoursBilled > 0` start `synced: false`.
-- `sendToSheet` tries immediately; on fetch resolve → `synced: true`; on fetch reject → stays `synced: false`.
-- `syncPending()` is triggered by the "Reintentar sync" button.
-- On init, if unsynced entries exist and a webhook is configured, a warning is shown.
-- The Apps Script uses the `id` field to skip already-processed entries (idempotency).
-- `migrateHistory()` runs on init; missing `synced` defaults to `true` (assumed previously synced).
+- Write is fire-and-forget (`no-cors`, opaque response). Confirmation comes from **reading the published CSV**, which has a publish delay of up to ~5 minutes.
+- The `Sync` button runs `fullSync()`: `restoreConfig()` + `syncPending()` + `reconcile()` + conflict resolution.
+- The Apps Script uses the `id` to skip already-processed entries (idempotency).
+- Deletion is only allowed for the **current month** (so past months' frozen "A cobrar" isn't altered). Editing description/project is allowed for any month; date/hours are immutable in the UI (only propagated when resolving a conflict via "Conservar local").
+- Concurrent multi-device writes are **not handled** (personal, single-user tool).
 
 ### Keyboard shortcuts (`app.js`)
 
-- `Espacio` — Iniciar / Pausar / Reanudar (ignored when focus is in an input/textarea/select)
-- `Escape` — close the finish modal or generic dialog
-- `Enter` — confirm in the finish modal or generic dialog
+- `Espacio` — Iniciar / Pausar / Reanudar (ignored when focus is in an `input` / `textarea` / `select` / `contenteditable`)
+- `Escape` — close the finish modal or conflict dialog
+- `Enter` — confirm in the finish modal; in inline edit, Enter saves (Shift+Enter = newline)
+- `Tab` — trapped inside open custom modals (focus trap)
 
 ## Commands
 
@@ -111,35 +126,39 @@ python3 -m http.server 8080
 # or any static server, e.g. npx serve .
 ```
 
-There are no test, lint, or CI commands.
+There are no test, lint, or CI commands. (Node.js is only used ad-hoc to syntax-check the ES modules: `node --input-type=module --check < scripts/app.js`.)
 
 ## Conventions
 
 - **Language**: UI text, comments, and variable names are in Spanish.
-- **CSS**: native CSS nesting (`&`), no preprocessor. Custom properties in `:root`. Dark Gruvbox-inspired palette. `clamp()` for responsive font sizing.
+- **CSS**: native CSS nesting (`&`), no preprocessor. Custom properties in `:root` + per-theme overrides via `:root[data-theme="..."]`. Four dark themes: `gruvbox` (default), `catppuccin`, `onedark`, `githubdark`. `clamp()` for responsive font sizing.
 - **JS modules**: ES modules loaded natively (`<script type="module">`). No bundler.
 - **Module pattern**: each JS file exports a single object (`State`, `Timer`, `UI`, `Data`). Everything is public — no private fields.
-- **Error handling**: user-facing messages go through `UI.showAlert()` / `UI.showConfirm()`; debugging via `console.error()`.
+- **Error handling**: user-facing messages via `UI.showMessage` (Display) or `UI.reportError` (console + native `alert`); debugging via `console.error()`.
 - **No comments**: self-documenting code is intentional; do not add explanatory comments unless asked.
 
 ## Gotchas
 
-- **State references are not reactive.** After mutating `State.currentSession` you must call `UI.updateControls()`, `UI.updateTimerDisplay()`, etc. to reflect changes.
-- **Only `app.js` mutates `State.currentSession`.** Other modules read it but never write it. `Timer.stop()` doesn't touch state at all.
-- **`State.resetSession()` creates a new object** (`this.currentSession = { ... }`). Any module holding a reference to the old session object will have a stale reference.
-- **The timer is accuracy-critical.** Don't change `getLiveMs()` to count ticks — it must use wall-clock time to survive tab throttling.
-- **Bank calculations are rounded to 2 decimals** at every step (bank sum, modulo remainder, save) to prevent floating point drift from distorting hour counts. Keep the `Math.round(x * 100) / 100` pattern.
-- **`fetch` with `mode: 'no-cors'` always resolves** even on network errors — the response is opaque and the `.catch()` effectively never fires. Do not rely on it for error detection; assume the request may or may not arrive.
-- **Session history has a hard cap of 100 entries** (enforced on push in `app.js`, not during import).
+- **State references are not reactive.** After mutating `State` you must call the relevant `UI.update*()` to reflect changes.
+- **Only `app.js` mutates `State.currentSession`.** Other modules read it but never write it. `Timer.stop()` doesn't touch state.
+- **`State.resetSession()` creates a new object** — anything holding the old reference is stale.
+- **The timer is accuracy-critical.** Don't change `getLiveMs()` to count ticks.
+- **Bank calculations are rounded to 2 decimals** at every step. Keep the `Math.round(x * 100) / 100` pattern.
+- **`fetch` with `mode: 'no-cors'` always resolves** — the response is opaque. Never rely on `.catch()` for error detection; the real confirmation is reading the published CSV.
+- **Publish delay vs deletion** is disambiguated by `lastSynced` + a 10-minute grace period (`SYNC_GRACE_MS`). Don't remove that logic without understanding the tradeoff.
+- **Session history has a hard cap of 100 entries** (enforced on push, not during import).
 - **LocalStorage keys are fixed strings** — changing them breaks existing user data.
-- **The modal form only appears for billable hours (>0).** If the bank doesn't reach 60 minutes, the session resolves silently without asking for a description.
-- **Finish calculations live in `modal.dataset`**, not a module-level variable, to prevent race conditions if the modal is opened twice.
-- **`submitting` flag in `app.js`** prevents double-submit on the finish button; it is reset in the `btnFinish` handler.
-- **`btnFinish` calls `Timer.stop()` without changing state.** Intentional: the timer stops visually but the session stays RUNNING/PAUSED until confirmed or cancelled (`cancelFinish()` resumes it).
-- **`fonts.css` uses `./fonts/...` paths** (correct for a file at repo root). If you move `fonts.css` or the fonts directory, the relative paths break.
+- **The modal form only appears for billable hours (>0).** If the bank doesn't reach 60 minutes, the session resolves silently (goes to bank only).
+- **Finish calculations live in `modal.dataset`**, not a module-level variable.
+- **`submitting` flag** prevents double-submit on the finish button; reset in the `btnFinish` handler.
+- **`btnFinish` calls `Timer.stop()` without changing state.** The session stays RUNNING/PAUSED until confirmed or cancelled (`cancelFinish()` resumes it).
+- **`fonts.css` uses `./fonts/...` paths** (correct for a file at repo root).
+- **Old legacy rows in "Registros" have no `id`** and are filtered out by `parseRecords` (`.filter(entry => entry.id !== '')`), so they don't participate in reconciliation.
+- **The favicon is regenerated dynamically** (`updateFavicon()` in `app.js`) from the active theme's `--bg` and `--accent`.
 
 ## Docs reference
 
-- `docs/revision.md` is a **historical** full review (bugs/UX/improvements). Most findings are already fixed in the current code: `submitting` guard, try/catch JSON parsing in `state.js`, `startTime !== null` guard, quoted `escapeHtml`, `:focus-visible` styles, keyboard shortcuts, `no-cors` messaging, favicon, and `theme-color`. Treat it as background, not a live todo list.
-- `docs/sheets.gs` is the Apps Script webhook. It is **deployed manually by the user** (Apps Script → Deploy → Web app) — editing it in this repo does not change the live deployment; the user must re-copy and re-deploy.
-- `docs/issues.md` is the maintained list of open issues and improvements, ordered by priority.
+- **`README.md`** — contains the full "Setup (Google Sheets)" walkthrough (create the 3 sheets, deploy the webhook, publish the two CSVs, configure Modulime). This is the canonical setup doc.
+- **`docs/sheets.gs`** — the Apps Script webhook. Deployed **manually** by the user; editing it in the repo does not change the live deployment. The user must re-copy and re-deploy after any change.
+- **`docs/issues.md`** — maintained list of open issues and improvements (gitignored, local-only).
+- **`docs/revision.md`** — historical full review; most findings are already fixed. Background, not a live todo list.
